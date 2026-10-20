@@ -1,0 +1,6 @@
+{
+  "name": "CITYLIFE RP - Jogo 3D de Mundo Aberto",
+  "description": "Explore uma cidade brasileira fictícia em 3D, crie seu personagem, dirija carros, trabalhe de entregador e viva sua vida em CITYLIFE RP.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

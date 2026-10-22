@@ -28,7 +28,7 @@ interface StoreModalProps {
   onBuyItem: (item: StoreItem) => boolean;
   onRepaintCar: (newColorHex: string) => void;
   onUpdateCharacterClothes: (updates: Partial<CharacterConfig>) => void;
-  onBuyCar?: (model: 'popular' | 'gt' | 'suv', price: number) => void;
+  onBuyCar?: (model: 'popular' | 'gt' | 'suv' | 'moto', price: number) => void;
   onApplyTuning?: () => void;
 }
 
@@ -82,8 +82,9 @@ const CAR_PAINTS = [
 
 const CAR_MODELS = [
   { id: 'popular', name: 'Hatch Popular 1.0 Flex', price: 550, desc: 'Econômico e ágil no trânsito diário da cidade.', speedBonus: 'Padrão' },
+  { id: 'moto', name: 'Motocicleta 160cc Street', price: 850, desc: 'Ágil e veloz para entregas Flash e driblar o tráfego (+20% vel.).', speedBonus: '+20% Vel.' },
   { id: 'gt', name: 'Coupé GT Esportivo Turbo', price: 1200, desc: 'Motor turbo esportivo com aceleração superior (+25% vel.).', speedBonus: '+25% Vel.' },
-  { id: 'suv', name: 'SUV Urbano 4x4 Luxo', price: 1800, desc: 'Máximo conforto, suspensão reforçada e blindagem leve.', speedBonus: '+35% Vel.' },
+  { id: 'suv', name: 'SUV Urbano 4x4 Luxo', price: 1800, desc: 'Máximo conforto, suspensão reforçada e blindagem leve (+35% vel.).', speedBonus: '+35% Vel.' },
 ] as const;
 
 const CLOTHING_COLORS = [

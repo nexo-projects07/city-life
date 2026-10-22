@@ -45,6 +45,11 @@ interface HUDProps {
   activeRide: AppRide | null;
   isRidingBus?: boolean;
   timeOfDay?: number;
+  gamepadInfo?: { isConnected: boolean; name: string };
+  senaiDemo?: { isActive: boolean; step: number; instruction: string } | null;
+  onStopSenaiDemo?: () => void;
+  onUnstuckPlayer?: () => void;
+  onUnstuckCar?: () => void;
   onTriggerInteraction: () => void;
   onOpenPauseMenu: () => void;
   onOpenPhone: () => void;
@@ -71,6 +76,11 @@ export const HUD: React.FC<HUDProps> = ({
   activeRide,
   isRidingBus = false,
   timeOfDay = 10.5,
+  gamepadInfo,
+  senaiDemo,
+  onStopSenaiDemo,
+  onUnstuckPlayer,
+  onUnstuckCar,
   onTriggerInteraction,
   onOpenPauseMenu,
   onOpenPhone,
@@ -341,7 +351,42 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
 
         {/* Center: Active Mission / Ride / Wanted Alerts */}
-        <div className="flex flex-col items-center gap-2 max-w-md w-full">
+        <div className="flex flex-col items-center gap-2 max-w-lg w-full">
+          {/* SENAI Demonstration Mode Active Banner */}
+          {senaiDemo?.isActive && (
+            <div className="pointer-events-auto w-full bg-gradient-to-r from-blue-900/95 via-indigo-950/95 to-blue-900/95 border-2 border-blue-400 p-3 rounded-2xl text-white shadow-2xl animate-in fade-in">
+              <div className="flex items-center justify-between border-b border-blue-400/30 pb-1.5 mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white font-black text-xs flex items-center justify-center">
+                    {senaiDemo.step}
+                  </span>
+                  <span className="text-xs font-black tracking-wider text-amber-300 uppercase">
+                    DEMONSTRAÇÃO SENAI · ETAPA {senaiDemo.step}/6
+                  </span>
+                </div>
+                {onStopSenaiDemo && (
+                  <button
+                    onClick={onStopSenaiDemo}
+                    className="text-[10px] text-slate-300 hover:text-white bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  >
+                    Encerrar Demo
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-slate-100 font-medium leading-relaxed">
+                {senaiDemo.instruction}
+              </div>
+            </div>
+          )}
+
+          {/* Gamepad Connection Badge */}
+          {gamepadInfo?.isConnected && (
+            <div className="pointer-events-auto flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1 rounded-full text-[11px] font-bold text-emerald-300 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>🎮 {gamepadInfo.name}</span>
+            </div>
+          )}
+
           {/* Police Wanted Stars */}
           {wantedLevel > 0 && (
             <div className="pointer-events-auto flex items-center gap-1.5 bg-red-950/90 border border-red-500 px-4 py-1.5 rounded-full text-white shadow-xl animate-pulse">
@@ -482,16 +527,23 @@ export const HUD: React.FC<HUDProps> = ({
         </div>
       </div>
 
-      {/* Center Prompt: Contextual Interaction [E] */}
+      {/* Center Prompt: Contextual Interaction [E] / [X] */}
       {interactionPrompt && (
         <div className="pointer-events-auto mx-auto mb-4 animate-bounce">
           <button
             onClick={onTriggerInteraction}
             className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm rounded-2xl shadow-2xl shadow-amber-500/30 flex items-center gap-2.5 border border-amber-300 transition-all active:scale-95 cursor-pointer"
           >
-            <span className="w-7 h-7 rounded-lg bg-slate-950 text-amber-400 font-black text-xs flex items-center justify-center">
-              E
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="w-7 h-7 rounded-lg bg-slate-950 text-amber-400 font-black text-xs flex items-center justify-center">
+                E
+              </span>
+              {gamepadInfo?.isConnected && (
+                <span className="w-7 h-7 rounded-lg bg-blue-950 border border-blue-400 text-blue-300 font-black text-xs flex items-center justify-center" title="Botão X ou Quadrado no controle">
+                  X
+                </span>
+              )}
+            </div>
             <span>{interactionPrompt}</span>
           </button>
         </div>

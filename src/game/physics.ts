@@ -79,15 +79,17 @@ export function resolveAABBCollision(
 /**
  * Updates player movement with acceleration, damping, gravity, jump, and collision.
  * Fixed: W moves forward relative to camera, S moves backward, A moves left, D moves right.
+ * Ground level is dynamic (y=0 in city, y=-40 in house interior).
  */
 export function updatePlayerPhysics(
   player: PlayerPhysicsState,
   input: { forward: number; strafe: number; jump: boolean; run: boolean; cameraAngleY: number },
   delta: number,
-  boxes: CollisionBox[]
+  boxes: CollisionBox[],
+  groundY: number = 0
 ): void {
-  const walkSpeed = 5.8; // m/s (~21 km/h) natural brisk walk
-  const runSpeed = 10.5; // m/s (~38 km/h) responsive sprint
+  const walkSpeed = 6.2; // m/s (~22 km/h) natural brisk walk
+  const runSpeed = 11.2; // m/s (~40 km/h) responsive sprint
   const targetSpeed = input.run ? runSpeed : walkSpeed;
 
   const fwd = input.forward; // 1 for W, -1 for S
@@ -97,16 +99,17 @@ export function updatePlayerPhysics(
 
   if (inputMag > 0.01) {
     // Camera forward vector on horizontal XZ plane: (sin(yaw), cos(yaw))
+    // With yaw = 0, camera is at -Z looking towards +Z, forward is +Z
     const camFwdX = Math.sin(input.cameraAngleY);
     const camFwdZ = Math.cos(input.cameraAngleY);
 
-    // Camera right vector on horizontal XZ plane: (cos(yaw), -sin(yaw))
-    // With yaw = 0, looking towards +Z, screen-right is +X: cos(0)=1, -sin(0)=0 -> (+1, 0)
-    // D moves right (+1), A moves left (-1)
-    const camRightX = Math.cos(input.cameraAngleY);
-    const camRightZ = -Math.sin(input.cameraAngleY);
+    // Camera right vector on horizontal XZ plane:
+    // Looking towards +Z in Three.js right-handed coordinates, screen-right is along -X
+    // D (+1) moves screen-right, A (-1) moves screen-left
+    const camRightX = -Math.cos(input.cameraAngleY);
+    const camRightZ = Math.sin(input.cameraAngleY);
 
-    // Diagonal movement normalized to 1.0 (prevents 1.414x speed advantage)
+    // Diagonal movement normalized to 1.0 (prevents diagonal speed exploit)
     const normFwd = fwd / inputMag;
     const normStr = str / inputMag;
 
@@ -125,8 +128,8 @@ export function updatePlayerPhysics(
     const targetVx = moveDirX * targetSpeed;
     const targetVz = moveDirZ * targetSpeed;
 
-    player.vx += (targetVx - player.vx) * Math.min(1, delta * 14);
-    player.vz += (targetVz - player.vz) * Math.min(1, delta * 14);
+    player.vx += (targetVx - player.vx) * Math.min(1, delta * 15);
+    player.vz += (targetVz - player.vz) * Math.min(1, delta * 15);
   } else {
     // Smooth damping to stop with no sudden drift
     player.vx += (0 - player.vx) * Math.min(1, delta * 16);
@@ -142,7 +145,7 @@ export function updatePlayerPhysics(
   if (player.isGrounded) {
     player.vy = 0;
     if (input.jump) {
-      player.vy = 7.8;
+      player.vy = 8.2;
       player.isGrounded = false;
     }
   } else {
@@ -154,9 +157,9 @@ export function updatePlayerPhysics(
   let nextY = player.y + player.vy * delta;
   let nextZ = player.z + player.vz * delta;
 
-  // Ground level check
-  if (nextY <= 0) {
-    nextY = 0;
+  // Ground level check with dynamic groundY (0 outdoors, -40 inside house)
+  if (nextY <= groundY) {
+    nextY = groundY;
     player.vy = 0;
     player.isGrounded = true;
   }
@@ -170,6 +173,8 @@ export function updatePlayerPhysics(
 
 /**
  * Updates car movement with acceleration, steering, braking, reverse, and collision.
+ * Corrected reverse steering so turning right directs the car right in both drive and reverse.
+ * Increased acceleration and top speed for modern open-world responsiveness.
  */
 export function updateCarPhysics(
   car: CarPhysicsState,
@@ -178,15 +183,15 @@ export function updateCarPhysics(
   boxes: CollisionBox[],
   speedMultiplier: number = 1.0
 ): { speedKmH: number; isColliding: boolean } {
-  const maxForwardSpeed = 30 * speedMultiplier; // m/s (~108 km/h, up to 135 km/h with tuning)
-  const maxReverseSpeed = -10.5; // m/s (~38 km/h)
-  const acceleration = 16.0 * speedMultiplier; // More responsive, punchy Brazilian street feel
-  const brakingDecel = 28.0;
+  const maxForwardSpeed = 38 * speedMultiplier; // m/s (~137 km/h, up to 165 km/h with tuning)
+  const maxReverseSpeed = -13.0; // m/s (~47 km/h)
+  const acceleration = 22.0 * speedMultiplier; // Responsive, punchy Brazilian street feel
+  const brakingDecel = 32.0;
   const naturalDrag = 3.2;
   const maxSteer = 0.58;
 
   const targetSteer = input.steer * maxSteer;
-  car.steerAngle += (targetSteer - car.steerAngle) * Math.min(1, delta * 10);
+  car.steerAngle += (targetSteer - car.steerAngle) * Math.min(1, delta * 12);
 
   if (input.brake) {
     if (car.speed > 0.5) {
@@ -210,12 +215,10 @@ export function updateCarPhysics(
     }
   }
 
-  // Realistic Ackerman-inspired yaw rate:
-  // When forward (speed > 0), turning wheel right rotates heading clockwise (yaw angle increases or decreases based on coordinate convention).
-  // When in reverse (speed < 0), turning wheel right directs the rear to the right, naturally swinging the vehicle's heading opposite.
-  // Using pure car.speed without double-negation turnSign ensures reverse steering turns in the intuitive, real-car direction.
+  // Consistent steering in forward and reverse (intuitive third-person camera direction):
+  // When pressing D, vehicle turns right whether traveling forward or in reverse.
   if (Math.abs(car.speed) > 0.08) {
-    const turnRate = (car.speed / 3.2) * car.steerAngle;
+    const turnRate = (Math.abs(car.speed) / 3.2) * car.steerAngle;
     car.rotationY += turnRate * delta;
   }
 
@@ -239,3 +242,4 @@ export function updateCarPhysics(
   const speedKmH = Math.round(car.speed * 3.6);
   return { speedKmH, isColliding };
 }
+

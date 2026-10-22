@@ -93,13 +93,37 @@ export const PauseMenu: React.FC<PauseMenuProps> = ({
             Salvar Jogo Agora
           </button>
 
-          <button
-            onClick={onResetPosition}
-            className="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-700 active:scale-98 font-semibold text-sm rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-2 text-slate-300 cursor-pointer"
-          >
-            <RotateCcw className="w-4 h-4 text-amber-400" />
-            Desenganchar / Respawn na Praça
-          </button>
+          {onStartSenaiDemo && (
+            <button
+              onClick={onStartSenaiDemo}
+              className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:scale-98 font-bold text-sm rounded-xl border border-blue-400/40 transition-all flex items-center justify-center gap-2 text-white shadow-lg shadow-blue-900/30 cursor-pointer"
+            >
+              <Check className="w-4 h-4 text-amber-300" />
+              Modo Demonstração SENAI 🎓
+            </button>
+          )}
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onResetPosition}
+              className="py-2.5 px-3 bg-slate-800/80 hover:bg-slate-700 active:scale-98 font-semibold text-xs rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-1.5 text-slate-300 cursor-pointer"
+              title="Destravar Personagem"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+              Destravar Jogador
+            </button>
+
+            {onResetCar && (
+              <button
+                onClick={onResetCar}
+                className="py-2.5 px-3 bg-slate-800/80 hover:bg-slate-700 active:scale-98 font-semibold text-xs rounded-xl border border-slate-700/80 transition-all flex items-center justify-center gap-1.5 text-slate-300 cursor-pointer"
+                title="Resgatar Veículo Preso"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+                Resgatar Carro
+              </button>
+            )}
+          </div>
 
           <button
             onClick={onOpenCharacterCreator}

@@ -16,6 +16,7 @@ import {
   updateCarPhysics,
 } from './physics';
 import { soundManager } from '../audio/soundManager';
+import { gamepadManager } from './gamepadManager';
 
 const _vec3 = new THREE.Vector3();
 const _camTarget = new THREE.Vector3();
@@ -647,6 +648,18 @@ export class GameEngine {
     this.playerPhysics.vz = 0;
     this.cameraPitch = 0.22;
     this.cameraYaw = Math.PI; // Face interior
+
+    // Instantly place camera in interior to avoid jarring lerp from surface
+    const camDist = 3.2;
+    const camHeight = 1.4 + Math.sin(0.22) * 2.2;
+    const camHorizontalDist = Math.cos(0.22) * camDist;
+    this.camera.position.set(
+      -25 - Math.sin(Math.PI) * camHorizontalDist,
+      -40 + camHeight,
+      (-25 + 3.2) - Math.cos(Math.PI) * camHorizontalDist
+    );
+    this.camera.lookAt(-25, -40 + 1.35, -25 + 3.2);
+
     soundManager.playUiClick();
     this.callbacks.onHouseTransition?.(true);
   }
@@ -660,6 +673,18 @@ export class GameEngine {
     this.playerPhysics.vz = 0;
     this.cameraPitch = 0.28;
     this.cameraYaw = 0;
+
+    // Instantly place camera outside
+    const camDist = 4.4;
+    const camHeight = 1.8 + Math.sin(0.28) * 2.2;
+    const camHorizontalDist = Math.cos(0.28) * camDist;
+    this.camera.position.set(
+      -25,
+      camHeight,
+      (-25 + 4.8) - camHorizontalDist
+    );
+    this.camera.lookAt(-25, 1.35, -25 + 4.8);
+
     soundManager.playUiClick();
     this.callbacks.onHouseTransition?.(false);
   }
@@ -845,7 +870,20 @@ export class GameEngine {
     const time = this.clock.getElapsedTime();
     const boxes = this.cityData.collisionBoxes;
 
-    // 1. Process Input
+    // 1. Process Input from Keyboard and Gamepad Controller
+    const pad = gamepadManager.poll({
+      onInteract: () => {
+        if (this.callbacks.onTriggerInteraction) {
+          this.callbacks.onTriggerInteraction();
+        } else {
+          this.triggerInteraction();
+        }
+      },
+      onHorn: () => {
+        soundManager.playHorn();
+      },
+    });
+
     let forwardKey = 0;
     let strafeKey = 0;
     let isRunning = false;
@@ -853,11 +891,21 @@ export class GameEngine {
     let isBraking = false;
 
     if (!this.isInputBlocked) {
-      forwardKey = (this.keys['KeyW'] || this.keys['ArrowUp'] ? 1 : 0) - (this.keys['KeyS'] || this.keys['ArrowDown'] ? 1 : 0);
-      strafeKey = (this.keys['KeyD'] || this.keys['ArrowRight'] ? 1 : 0) - (this.keys['KeyA'] || this.keys['ArrowLeft'] ? 1 : 0);
-      isRunning = !!this.keys['ShiftLeft'] || !!this.keys['ShiftRight'];
-      isJumping = !!this.keys['Space'] && !this.isDriving;
-      isBraking = !!this.keys['Space'] && this.isDriving;
+      const kbFwd = (this.keys['KeyW'] || this.keys['ArrowUp'] ? 1 : 0) - (this.keys['KeyS'] || this.keys['ArrowDown'] ? 1 : 0);
+      const kbStr = (this.keys['KeyD'] || this.keys['ArrowRight'] ? 1 : 0) - (this.keys['KeyA'] || this.keys['ArrowLeft'] ? 1 : 0);
+
+      forwardKey = Math.abs(pad.moveY) > 0.08 ? pad.moveY : kbFwd;
+      strafeKey = Math.abs(pad.moveX) > 0.08 ? pad.moveX : kbStr;
+      isRunning = !!this.keys['ShiftLeft'] || !!this.keys['ShiftRight'] || pad.isSprinting;
+      isJumping = (!!this.keys['Space'] || pad.isJumping) && !this.isDriving;
+      isBraking = (!!this.keys['Space'] || pad.brakeReverse > 0.3) && this.isDriving;
+
+      // Gamepad right analog look
+      if (Math.abs(pad.lookX) > 0.05 || Math.abs(pad.lookY) > 0.05) {
+        this.cameraYaw -= pad.lookX * 2.4 * delta;
+        this.cameraPitch -= pad.lookY * 2.0 * delta;
+        this.cameraPitch = Math.max(-0.15, Math.min(1.3, this.cameraPitch));
+      }
     }
 
     // 2. Update Physics
@@ -872,7 +920,8 @@ export class GameEngine {
           cameraAngleY: this.cameraYaw,
         },
         delta,
-        this.isInsideHouse ? (this.cityData.houseInteriorBoxes || []) : boxes
+        this.isInsideHouse ? (this.cityData.houseInteriorBoxes || []) : boxes,
+        this.isInsideHouse ? -40 : 0
       );
 
       const moveMag = Math.hypot(this.playerPhysics.vx, this.playerPhysics.vz);
@@ -891,7 +940,12 @@ export class GameEngine {
         this.playerPhysics.rotationY
       );
     } else {
-      const throttle = forwardKey;
+      let throttle = forwardKey;
+      if (pad.throttle > 0.08) {
+        throttle = pad.throttle;
+      } else if (pad.brakeReverse > 0.08 && !isBraking) {
+        throttle = -pad.brakeReverse;
+      }
       const steer = -strafeKey;
 
       const { speedKmH } = updateCarPhysics(

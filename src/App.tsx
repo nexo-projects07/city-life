@@ -21,6 +21,7 @@ import { NpcDialogModal } from './components/NpcDialogModal';
 import { PhoneModal } from './components/PhoneModal';
 import { NotificationToast, ToastMessage } from './components/NotificationToast';
 import { soundManager } from './audio/soundManager';
+import { gamepadManager } from './game/gamepadManager';
 
 const SAVE_KEY = 'citylife_rp_save_v2';
 
@@ -218,6 +219,19 @@ export default function App() {
   const [mouseSensitivity, setMouseSensitivity] = useState(0.0025);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // SENAI Interactive Demo State
+  const [senaiDemo, setSenaiDemo] = useState<{
+    isActive: boolean;
+    step: number;
+    instruction: string;
+  } | null>(null);
+
+  // Controller Gamepad Info
+  const [gamepadInfo, setGamepadInfo] = useState<{ isConnected: boolean; name: string }>({
+    isConnected: false,
+    name: '',
+  });
+
   // Engine ref
   const canvasMountRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GameEngine | Canvas2DGameEngine | null>(null);
@@ -294,6 +308,13 @@ export default function App() {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(currentData));
       setSaveData(currentData);
+      if (senaiDemo?.isActive && senaiDemo.step === 5) {
+        setSenaiDemo({
+          isActive: true,
+          step: 6,
+          instruction: '🎉 Parabéns! O circuito de demonstração SENAI foi concluído com 100% de sucesso! Você pode reiniciar a demo ou continuar explorando livremente a cidade.',
+        });
+      }
     } catch {
       // Storage full
     }
@@ -310,6 +331,7 @@ export default function App() {
     timeOfDay,
     isInsideHouse,
     contacts,
+    senaiDemo,
   ]);
 
   // Auto-save every 30 seconds
@@ -405,9 +427,16 @@ export default function App() {
         `Você entregou com sucesso o pedido para ${mission.clientName}.`,
         'success'
       );
+      if (senaiDemo?.isActive) {
+        setSenaiDemo({
+          isActive: true,
+          step: 5,
+          instruction: '5. Excelente! Pagamento de R$ 150 recebido. Agora abra o menu de Pausa [ESC] e clique em "Salvar Jogo Agora" para salvar o progresso.',
+        });
+      }
       saveProgress();
     },
-    [addToast, saveProgress]
+    [addToast, saveProgress, senaiDemo]
   );
 
   // Generate new delivery mission
@@ -503,6 +532,72 @@ export default function App() {
     },
     [money, addToast]
   );
+
+  // SENAI Demo Mode Start Handler
+  const startSenaiDemo = useCallback(() => {
+    if (engineRef.current) {
+      engineRef.current.playerPhysics.x = -25;
+      engineRef.current.playerPhysics.y = 0;
+      engineRef.current.playerPhysics.z = 18;
+      engineRef.current.playerPhysics.vx = 0;
+      engineRef.current.playerPhysics.vz = 0;
+      engineRef.current.carPhysics.x = -21;
+      engineRef.current.carPhysics.z = 18;
+      engineRef.current.carPhysics.speed = 0;
+      engineRef.current.carPhysics.rotationY = 0;
+      setCarPosition([-21, 0, 18]);
+      setPlayerPosition([-25, 0, 18]);
+      engineRef.current.setActiveWaypoint([-25, 0, 25], 0xf59e0b);
+    }
+    setIsInsideHouse(false);
+    setIsDriving(false);
+    setIsPaused(false);
+    setIsPhoneOpen(false);
+    setActiveStoreCategory(null);
+    setActiveNpcDialog(null);
+    setSenaiDemo({
+      isActive: true,
+      step: 1,
+      instruction: '1. Aproxime-se da Central Flash Express / SENAI (marcador amarelo à frente) e pressione [E] ou [X] para retirar a encomenda.',
+    });
+    addToast('Demonstração SENAI Iniciada!', 'Siga as instruções didáticas no topo da tela.', 'info');
+  }, [addToast]);
+
+  // Stop SENAI Demo Mode
+  const stopSenaiDemo = useCallback(() => {
+    setSenaiDemo(null);
+    if (engineRef.current) {
+      engineRef.current.setActiveWaypoint(null);
+    }
+    addToast('Demonstração Encerrada', 'Você retornou à exploração livre de Vila Esperança.', 'info');
+  }, [addToast]);
+
+  // Safe Unstuck Handlers
+  const handleUnstuckPlayer = useCallback(() => {
+    if (engineRef.current) {
+      engineRef.current.playerPhysics.x = 0;
+      engineRef.current.playerPhysics.y = 0;
+      engineRef.current.playerPhysics.z = 0;
+      engineRef.current.playerPhysics.vx = 0;
+      engineRef.current.playerPhysics.vz = 0;
+    }
+    setIsInsideHouse(false);
+    setIsDriving(false);
+    setIsPaused(false);
+    addToast('Personagem Recuperado!', 'Você foi reposicionado com segurança na Praça Central.', 'success');
+  }, [addToast]);
+
+  const handleUnstuckCar = useCallback(() => {
+    if (engineRef.current) {
+      engineRef.current.carPhysics.x = 0;
+      engineRef.current.carPhysics.z = 10;
+      engineRef.current.carPhysics.speed = 0;
+      engineRef.current.carPhysics.rotationY = 0;
+      setCarPosition([0, 0, 10]);
+    }
+    setIsPaused(false);
+    addToast('Veículo Resgatado!', 'Carro posicionado na pista principal.', 'success');
+  }, [addToast]);
 
   // Mount Game Engine
   useEffect(() => {
@@ -628,11 +723,25 @@ export default function App() {
     if (canEnterCar) {
       engineRef.current.enterVehicle();
       setIsDriving(true);
+      if (senaiDemo?.isActive && senaiDemo.step === 2) {
+        setSenaiDemo({
+          isActive: true,
+          step: 3,
+          instruction: '3. Dirija pela rua seguindo o traçado do GPS no minimapa até a Casa 101 (marcador amarelo à frente).',
+        });
+      }
       return;
     }
     if (canExitCar) {
       engineRef.current.exitVehicle();
       setIsDriving(false);
+      if (senaiDemo?.isActive && senaiDemo.step === 3) {
+        setSenaiDemo({
+          isActive: true,
+          step: 4,
+          instruction: '4. Você chegou! Aproxime-se do portão da Casa 101 e pressione [E] para entregar a encomenda para Dona Neusa.',
+        });
+      }
       return;
     }
 
@@ -708,7 +817,36 @@ export default function App() {
         return;
       }
 
+      if (nearbyInteraction.type === 'senai_school') {
+        startSenaiDemo();
+        return;
+      }
+
       if (nearbyInteraction.type === 'delivery_hub') {
+        if (senaiDemo?.isActive && senaiDemo.step === 1) {
+          const demoMission: DeliveryMission = {
+            id: `demo_senai_${Date.now()}`,
+            title: 'Entrega Didática SENAI',
+            clientName: 'Dona Neusa (Casa 101)',
+            destinationName: 'Casa 101 - Rua das Acácias',
+            targetPosition: [-25, 0, 71],
+            reward: 150,
+            itemDescription: 'Placa Controladora Robótica do SENAI',
+          };
+          setActiveMission(demoMission);
+          if (engineRef.current) {
+            engineRef.current.setActiveMission(demoMission);
+          }
+          soundManager.playCashSound();
+          setSenaiDemo({
+            isActive: true,
+            step: 2,
+            instruction: '2. Pacote didático retirado! Aproxime-se do seu veículo estacionado ao lado e pressione [E] ou [X] para embarcar.',
+          });
+          addToast('Pacote Retirado!', 'Entre no veículo estacionado.', 'success');
+          return;
+        }
+
         if (activeMission) {
           addToast('Você já tem uma entrega em andamento!', 'Entregue o pacote no destino marcado no GPS.', 'warning');
         } else {
@@ -837,10 +975,22 @@ export default function App() {
     saveProgress,
   ]);
 
-  // Global Key Listeners: ESC (Pause/Close), KeyP (Smartphone)
+  // Global Key Listeners: ESC (Pause/Close), KeyP (Smartphone), KeyE (Universal Interaction)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!hasStarted || isEditingCharacter) return;
+
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+
+      if (e.code === 'KeyE') {
+        const isAnyModalOpen = isPaused || isEditingCharacter || isPhoneOpen || activeStoreCategory !== null || activeNpcDialog !== null;
+        if (!isAnyModalOpen) {
+          e.preventDefault();
+          handleTriggerInteraction();
+          return;
+        }
+      }
 
       if (e.code === 'KeyP') {
         setIsPhoneOpen((p) => !p);
@@ -863,7 +1013,48 @@ export default function App() {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [hasStarted, isEditingCharacter, isPhoneOpen, activeStoreCategory, activeNpcDialog]);
+  }, [hasStarted, isEditingCharacter, isPhoneOpen, isPaused, activeStoreCategory, activeNpcDialog, handleTriggerInteraction]);
+
+  // Gamepad Connection Subscription
+  useEffect(() => {
+    return gamepadManager.subscribe((status) => {
+      setGamepadInfo({ isConnected: status.isConnected, name: status.name });
+      if (status.isConnected) {
+        addToast('Controle Conectado', `${status.name} pronto para jogar.`, 'info');
+      }
+    });
+  }, [addToast]);
+
+  // Periodic Gamepad Button Poller for Modal Navigation and Actions
+  useEffect(() => {
+    if (!hasStarted || isEditingCharacter) return;
+    const interval = setInterval(() => {
+      gamepadManager.poll({
+        onInteract: () => {
+          const isAnyModalOpen = isPaused || isPhoneOpen || activeStoreCategory !== null || activeNpcDialog !== null;
+          if (!isAnyModalOpen) {
+            handleTriggerInteraction();
+          }
+        },
+        onPhoneToggle: () => {
+          setIsPhoneOpen((p) => !p);
+          soundManager.playUiClick();
+        },
+        onPauseToggle: () => {
+          setIsPaused((p) => !p);
+          soundManager.playUiClick();
+        },
+        onRadioCycle: () => {
+          const st = soundManager.cycleNextRadioStation();
+          addToast(st.name, st.genre, 'info');
+        },
+        onHorn: () => {
+          soundManager.playHorn();
+        },
+      });
+    }, 45);
+    return () => clearInterval(interval);
+  }, [hasStarted, isEditingCharacter, isPaused, isPhoneOpen, activeStoreCategory, activeNpcDialog, handleTriggerInteraction, addToast]);
 
   // Store purchases handler
   const handleBuyItem = (item: StoreItem): boolean => {
@@ -1118,6 +1309,11 @@ export default function App() {
           activeRide={activeRide}
           isRidingBus={isRidingBus}
           timeOfDay={timeOfDay}
+          gamepadInfo={gamepadInfo}
+          senaiDemo={senaiDemo}
+          onStopSenaiDemo={stopSenaiDemo}
+          onUnstuckPlayer={handleUnstuckPlayer}
+          onUnstuckCar={handleUnstuckCar}
           onTriggerInteraction={handleTriggerInteraction}
           onOpenPauseMenu={() => setIsPaused(true)}
           onOpenPhone={() => setIsPhoneOpen(true)}
@@ -1205,7 +1401,9 @@ export default function App() {
             saveProgress();
             addToast('Jogo Salvo!', 'Progresso gravado no armazenamento local.', 'success');
           }}
-          onResetPosition={handleResetPosition}
+          onResetPosition={handleUnstuckPlayer}
+          onResetCar={handleUnstuckCar}
+          onStartSenaiDemo={startSenaiDemo}
           onOpenCharacterCreator={() => {
             setIsPaused(false);
             setIsEditingCharacter(true);

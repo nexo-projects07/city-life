@@ -18,6 +18,9 @@ export interface Canvas2DGameEngineCallbacks {
   onTimeUpdate?: (timeOfDay: number) => void;
   onOpenNpcDialog?: (npc: NPCData) => void;
   onHouseTransition?: (isInside: boolean) => void;
+  onTriggerInteraction?: () => void;
+  onNpcHit?: (npc: NPCData) => void;
+  onBoardBus?: (stopName: string) => void;
 }
 
 export class Canvas2DGameEngine {
@@ -133,6 +136,22 @@ export class Canvas2DGameEngine {
     this.currentActiveMission = mission;
   }
 
+  public setPassengerInCar(_config: CharacterConfig | null) {}
+  public setActiveWaypoint(_pos: [number, number, number] | null, _color?: number) {}
+  public triggerPunch() { soundManager.playPunch(); }
+  public setWeather(_w: 'sunny' | 'cloudy' | 'rain') {}
+  public resetVehicleToRoad() {
+    this.carPhysics.x = 0;
+    this.carPhysics.z = 10;
+    this.carPhysics.speed = 0;
+    soundManager.playCashSound();
+  }
+  public resetPlayerToSidewalk() {
+    this.playerPhysics.x = 0;
+    this.playerPhysics.z = 0;
+    soundManager.playCashSound();
+  }
+
   private handleKeyDown = (e: KeyboardEvent) => {
     if (this.isInputBlocked) return;
 
@@ -142,7 +161,11 @@ export class Canvas2DGameEngine {
     this.keys[e.code] = true;
 
     if (e.code === 'KeyE') {
-      this.triggerInteraction();
+      if (this.callbacks.onTriggerInteraction) {
+        this.callbacks.onTriggerInteraction();
+      } else {
+        this.triggerInteraction();
+      }
     }
     if (e.code === 'KeyH' && this.isDriving) {
       soundManager.playHorn();

@@ -28,6 +28,10 @@ import {
   createTrafficCarModel,
   createParkBench,
   createPublicTrashCan,
+  createShoppingMall,
+  createHospital,
+  createGasStation,
+  createSenaiCampus,
 } from './models';
 
 export interface CollisionBox {
@@ -372,6 +376,15 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     promptText: '[E] Salvar Jogo no Notebook',
   });
 
+  interactionPoints.push({
+    id: 'house_shower',
+    name: 'Chuveiro Quente',
+    type: 'player_house_shower',
+    position: [interiorX + 6.8, interiorY, interiorZ - 5.6],
+    radius: 2.5,
+    promptText: '[E] Tomar Banho Quente (100% Higiene)',
+  });
+
   // House Interior Accurate Collision Boxes (Player can walk through rooms and doorways)
   const addInteriorBox = (rx: number, rz: number, w: number, d: number) => {
     houseInteriorBoxes.push({
@@ -511,10 +524,95 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     promptText: '[E] Comprar Roupas na Boutique',
   });
 
-  // 12. Corporate Downtown Towers
+  // 12. SHOPPING CENTER METRÓPOLE (at X = 75, Z = -25)
+  const mallX = 75;
+  const mallZ = -25;
+  const mall = createShoppingMall();
+  mall.position.set(mallX, 0, mallZ);
+  cityGroup.add(mall);
+  addAABB(mallX, mallZ, 24.2, 16.2);
+
+  interactionPoints.push({
+    id: 'store_shopping',
+    name: 'Shopping Center Metrópole',
+    type: 'store_shopping',
+    position: [mallX, 0, mallZ + 9.5],
+    radius: 4.2,
+    promptText: '[E] Entrar no Shopping Metrópole',
+  });
+
+  // 13. HOSPITAL & FARMÁCIA CENTRAL (at X = -75, Z = -75)
+  const hospX = -75;
+  const hospZ = -75;
+  const hosp = createHospital();
+  hosp.position.set(hospX, 0, hospZ);
+  cityGroup.add(hosp);
+  addAABB(hospX, hospZ, 18.2, 14.2);
+
+  interactionPoints.push({
+    id: 'store_hospital',
+    name: 'Hospital & Farmácia Central',
+    type: 'store_hospital',
+    position: [hospX, 0, hospZ + 8.2],
+    radius: 4.0,
+    promptText: '[E] Consultar Médico / Farmácia',
+  });
+
+  // 14. POSTO DE COMBUSTÍVEL BRASIL (at X = 75, Z = 75)
+  const postoX = 75;
+  const postoZ = 75;
+  const posto = createGasStation();
+  posto.position.set(postoX, 0, postoZ);
+  cityGroup.add(posto);
+  addAABB(postoX, postoZ, 16.2, 14.2);
+
+  interactionPoints.push({
+    id: 'store_posto',
+    name: 'Posto de Combustível Brasil',
+    type: 'store_posto',
+    position: [postoX, 0, postoZ + 4.5],
+    radius: 4.2,
+    promptText: '[E] Abastecer / Comprar no Posto',
+  });
+
+  // 15. ESCOLA TÉCNICA SENAI VILA ESPERANÇA
+  const senaiX = -50;
+  const senaiZ = 75;
+  const senai = createSenaiCampus();
+  senai.position.set(senaiX, 0, senaiZ);
+  cityGroup.add(senai);
+  addAABB(senaiX, senaiZ, 22.2, 16.2);
+
+  interactionPoints.push({
+    id: 'senai_school',
+    name: 'Escola Técnica SENAI',
+    type: 'senai_school',
+    position: [senaiX, 0, senaiZ + 9.5],
+    radius: 4.5,
+    promptText: '[E] Concluir Entrega / Entrar no SENAI',
+  });
+
+  // Real Estate Apartments: Edifício Metrópole (#802) & Torre Horizon (#304)
+  interactionPoints.push({
+    id: 'real_estate_metropole',
+    name: 'Edifício Metrópole - Cobertura #802',
+    type: 'real_estate_metropole',
+    position: [75, 0, -65],
+    radius: 3.5,
+    promptText: '[E] Imobiliária: Ver Cobertura Metrópole',
+  });
+
+  interactionPoints.push({
+    id: 'real_estate_torre',
+    name: 'Torre Horizon - Studio #304',
+    type: 'real_estate_torre',
+    position: [-75, 0, 15],
+    radius: 3.5,
+    promptText: '[E] Imobiliária: Ver Studio Horizon',
+  });
+
+  // 16. Downtown Office Towers & Bank
   const towers = [
-    { x: 75, z: -25, w: 18, h: 32, d: 18, c: 0x1e293b, ac: 0x38bdf8, name: 'Edifício Metrópole' },
-    { x: -75, z: -75, w: 18, h: 26, d: 16, c: 0x3b82f6, ac: 0x1d4ed8, name: 'Torre Horizon' },
     { x: 75, z: -75, w: 20, h: 28, d: 18, c: 0x334155, ac: 0x0284c7, name: 'Banco Nacional' },
     { x: 25, z: -75, w: 16, h: 22, d: 16, c: 0x475569, ac: 0xf8fafc, name: 'Centro Empresarial Sul' },
   ];
@@ -526,13 +624,13 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     addAABB(t.x, t.z, t.w, t.d);
   });
 
-  // 13. Residential Neighborhood (Vila das Flores)
+  // 17. Residential Neighborhood (Vila das Flores)
   const houses = [
     { x: -25, z: 75, color: 0xfae8b4, roof: 0xc2410c, name: 'Casa 101 - Dona Neusa' },
     { x: 25, z: 75, color: 0xcfe8d5, roof: 0xb45309, name: 'Casa 102 - Seu Jorge' },
-    { x: 75, z: 75, color: 0xfef08a, roof: 0xb45309, name: 'Casa 103 - Família Santos' },
     { x: -75, z: 75, color: 0xfce7f3, roof: 0xc2410c, name: 'Casa 104 - Camila & Pedro' },
     { x: -25, z: -75, color: 0xdbeafe, roof: 0x9a3412, name: 'Casa 105 - Dr. Marcos' },
+    { x: 25, z: -75, color: 0xfef08a, roof: 0xb45309, name: 'Casa 106 - Beto (Coprotagonista)' },
   ];
 
   houses.forEach((h) => {
@@ -570,10 +668,11 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     cityGroup.add(stopSign);
   });
 
-  // Bus Stops
+  // Bus Stops with interactive boarding points
   const busStops = [
-    { x: 0 - 9.5, z: -40, rot: Math.PI / 2 },
-    { x: 0 + 9.5, z: 40, rot: -Math.PI / 2 },
+    { id: 'bus_stop_norte', name: 'Parada Av. Brasil Norte', x: -9.5, z: -40, rot: Math.PI / 2 },
+    { id: 'bus_stop_sul', name: 'Parada Av. Brasil Sul', x: 9.5, z: 40, rot: -Math.PI / 2 },
+    { id: 'bus_stop_shopping', name: 'Parada Shopping Metrópole', x: 65, z: -15, rot: 0 },
   ];
   busStops.forEach((bs) => {
     const shelter = createBusStop();
@@ -581,6 +680,16 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     shelter.rotation.y = bs.rot;
     cityGroup.add(shelter);
     addAABB(bs.x, bs.z, 2.2, 4.2);
+
+    interactionPoints.push({
+      id: bs.id,
+      name: bs.name,
+      type: 'bus_stop',
+      position: [bs.x, 0, bs.z],
+      radius: 3.5,
+      promptText: '[E] Embarcar no Ônibus (Linha 101 - R$ 4,50)',
+      extraData: { stopName: bs.name },
+    });
   });
 
   // 15. Brazilian Traffic Lights (Semáforos Funcionais) at Central Intersections
@@ -677,20 +786,20 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
   addAABB(-halfSize, 0, wallThick, 304);
 
   // 19. Autonomous Traffic Vehicles (Trânsito Ativo da Cidade)
-  // Municipal Bus along Av. Brasil (North-South, X = 3.5 lane)
+  // Municipal Bus along Avenida Leste (North-South, X = 50 + 3.5 lane)
   const busMesh = createBusModel();
   cityGroup.add(busMesh);
   trafficVehicles.push({
     id: 'traffic_bus_1',
     group: busMesh,
     type: 'bus',
-    speed: 10.0, // ~36 km/h
+    speed: 9.5, // ~34 km/h
     laneAxis: 'z',
-    fixedCoord: 3.5,
+    fixedCoord: 50 + 3.5,
     minBound: -130,
     maxBound: 130,
     direction: 1,
-    currentCoord: -80,
+    currentCoord: -60,
   });
 
   // Delivery Motorcycle along Rua das Flores (East-West, Z = 50 - 3.5 lane)
@@ -725,7 +834,7 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     currentCoord: 60,
   });
 
-  // Silver Hatchback along Avenue X = 50 (Northbound, lane at X = 50 + 3.5)
+  // Silver Hatchback along Avenue X = 50 (Southbound, lane at X = 50 - 3.5)
   const hatchMesh = createTrafficCarModel('#94a3b8');
   cityGroup.add(hatchMesh);
   trafficVehicles.push({
@@ -734,30 +843,136 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     type: 'car',
     speed: 12.0,
     laneAxis: 'z',
-    fixedCoord: 50 + 3.5,
+    fixedCoord: 50 - 3.5,
+    minBound: -130,
+    maxBound: 130,
+    direction: -1,
+    currentCoord: 30,
+  });
+
+  // Police Patrol Cruiser along Avenida Brasil (East-West, Z = -50 + 3.5 lane)
+  const policeMesh = createTrafficCarModel('#1e3a8a');
+  cityGroup.add(policeMesh);
+  trafficVehicles.push({
+    id: 'traffic_police_1',
+    group: policeMesh,
+    type: 'car',
+    speed: 13.0,
+    laneAxis: 'x',
+    fixedCoord: -50 + 3.5,
     minBound: -130,
     maxBound: 130,
     direction: 1,
-    currentCoord: -30,
+    currentCoord: -40,
   });
 
   // Delivery destinations for Flash Express Courier
   const deliveryDestinations = [
     { name: 'Minha Casa (#42)', position: [playerHouseX, 0, playerHouseZ + 4] as [number, number, number], clientName: 'Você (Encomenda Pessoal)' },
+    { name: 'Shopping Metrópole', position: [75, 0, -18] as [number, number, number], clientName: 'Administração do Shopping' },
+    { name: 'Hospital Central', position: [-75, 0, -68] as [number, number, number], clientName: 'Recepção Hospitalar' },
+    { name: 'Posto Brasil', position: [75, 0, 80] as [number, number, number], clientName: 'Loja de Conveniência BR' },
     { name: 'Casa 101 (Dona Neusa)', position: [-25, 0, 71] as [number, number, number], clientName: 'Dona Neusa' },
     { name: 'Casa 102 (Seu Jorge)', position: [25, 0, 71] as [number, number, number], clientName: 'Seu Jorge' },
-    { name: 'Casa 103 (Família Santos)', position: [75, 0, 71] as [number, number, number], clientName: 'Sr. Santos' },
     { name: 'Casa 104 (Camila & Pedro)', position: [-75, 0, 71] as [number, number, number], clientName: 'Camila' },
     { name: 'Casa 105 (Dr. Marcos)', position: [-25, 0, -71] as [number, number, number], clientName: 'Dr. Marcos' },
-    { name: 'Edifício Metrópole', position: [75, 0, -15] as [number, number, number], clientName: 'Portaria Metrópole' },
-    { name: 'Torre Horizon', position: [-75, 0, 15] as [number, number, number], clientName: 'Recepção Horizon' },
-    { name: 'Banco Nacional', position: [75, 0, -65] as [number, number, number], clientName: 'Gerência do Banco' },
+    { name: 'Casa 106 (Beto Parceiro)', position: [25, 0, -71] as [number, number, number], clientName: 'Beto' },
     { name: 'Padaria Pão Dourado', position: [25, 0, -19] as [number, number, number], clientName: 'Balcão da Padaria' },
     { name: 'Mercadinho Vila Nova', position: [-75, 0, -19] as [number, number, number], clientName: 'Dona Maria' },
   ];
 
-  // 20. Predefined Interactive NPCs with Sidewalk Routes
+  // 20. Predefined Interactive NPCs with Rich Dialogues & Sidewalk Routes
   const npcs: NPCData[] = [
+    {
+      id: 'npc_beto',
+      name: 'Beto (Melhor Amigo & Coprotagonista)',
+      role: 'Coprotagonista & Parceiro',
+      position: [12, 0, -14],
+      heading: 0,
+      route: [
+        [12, -14],
+        [12, -6],
+        [4, -6],
+        [4, -14],
+      ],
+      routeIndex: 0,
+      dialog: [
+        'E aí meu irmão! Tudo certo? Sabia que você vinha pra praça!',
+        'A gente precisa juntar uma grana para abrir nosso próprio negócio na cidade.',
+        'Se você precisar de carona ou apoio nas missões, conta comigo sempre!',
+      ],
+      options: [
+        { text: 'E aí Beto! Como vão as coisas?', replyText: 'Tô na correria mano! Mas com você na parceria a gente domina essa cidade!', affinityBonus: 5 },
+        { text: 'Bora dar uma volta no Shopping mais tarde?', replyText: 'Com certeza! Fechou demais, me chama no Zap do celular!', affinityBonus: 10 },
+      ],
+      speed: 1.2,
+      skinTone: '#b57954',
+      hairStyle: 'curto',
+      hairColor: '#1a1105',
+      topColor: '#2563eb',
+      bottomColor: '#0f172a',
+      affinity: 80,
+      relationshipStatus: 'melhor_amigo',
+    },
+    {
+      id: 'npc_juliana',
+      name: 'Juliana (Estudante & Romance)',
+      role: 'Estudante Universitária',
+      position: [-10, 0, 12],
+      heading: Math.PI,
+      route: [
+        [-10, 12],
+        [-4, 12],
+        [-4, 4],
+        [-10, 4],
+      ],
+      routeIndex: 0,
+      dialog: [
+        'Oi! Que bom te ver por aqui pela Praça Central!',
+        'Estava fazendo uma pausa nos estudos da faculdade. O dia hoje está lindo, né?',
+        'Qualquer hora dessas podíamos tomar um açaí gelado juntos!',
+      ],
+      options: [
+        { text: 'Oi Ju! Você tá linda hoje.', replyText: 'Ai, obrigada! Você sempre gentil comigo... Me manda mensagem no Zap!', affinityBonus: 15 },
+        { text: 'Aceita um açaí comigo agora?', replyText: 'Adoraria! O do quiosque é o melhor de Vila Esperança!', affinityBonus: 20 },
+      ],
+      speed: 1.1,
+      skinTone: '#ffd1b3',
+      hairStyle: 'longo',
+      hairColor: '#4a2e18',
+      topColor: '#ec4899',
+      bottomColor: '#334155',
+      affinity: 65,
+      relationshipStatus: 'paquera',
+      isRomanceOption: true,
+    },
+    {
+      id: 'npc_silva',
+      name: 'Sargento Silva',
+      role: 'Polícia Militar / Trânsito',
+      position: [0, 0, -32],
+      heading: 0,
+      route: [
+        [-2, -32],
+        [2, -32],
+      ],
+      routeIndex: 0,
+      dialog: [
+        'Boa tarde, cidadão. Ronda ostensiva em andamento em Vila Esperança.',
+        'Dirija com prudência, respeite os pedestres e não cause confusão na praça.',
+      ],
+      options: [
+        { text: 'Tudo tranquilo por aqui, policial?', replyText: 'Tudo sob controle. Continue fazendo seu trabalho honesto.', affinityBonus: 5 },
+      ],
+      speed: 0.9,
+      skinTone: '#794b29',
+      hairStyle: 'raspado',
+      hairColor: '#1a1105',
+      topColor: '#1e3a8a',
+      bottomColor: '#0f172a',
+      affinity: 50,
+      relationshipStatus: 'conhecido',
+    },
     {
       id: 'npc_tiago',
       name: 'Tiago (Gerente Flash Express)',
@@ -771,8 +986,11 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       routeIndex: 0,
       dialog: [
         'Fala parceiro! Pronto para rodar a cidade entregando encomendas?',
-        'Temos rotas pagando de R$ 90 a R$ 150 por pacote entregue!',
-        'Aperte E no balcão para retirar sua próxima encomenda!',
+        'Temos rotas pagando de R$ 90 a R$ 150 por pacote entregue com sucesso!',
+        'Você também pode aceitar corridas pelo app Urbano no seu celular!',
+      ],
+      options: [
+        { text: 'Quero pegar uma entrega agora!', replyText: 'Com certeza! Encomenda gerada e marcada no seu GPS!', action: 'accept_delivery' },
       ],
       speed: 1.0,
       skinTone: '#b57954',
@@ -780,6 +998,8 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       hairColor: '#1a1105',
       topColor: '#ea580c',
       bottomColor: '#1e293b',
+      affinity: 60,
+      relationshipStatus: 'amigo',
     },
     {
       id: 'npc_dona_maria',
@@ -794,7 +1014,10 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       routeIndex: 0,
       dialog: [
         'Bom dia, meu jovem! Tudo fresquinho aqui no Mercadinho Vila Nova.',
-        'Se bater o cansaço das entregas, leve um energético ou água gelada!',
+        'Se bater o cansaço ou a fome nas entregas, leve um energético ou lanche natural!',
+      ],
+      options: [
+        { text: 'Quero ver os produtos do mercadinho', replyText: 'Fique à vontade! Preços justos como sempre!', action: 'open_store', storeCategory: 'mercado' },
       ],
       speed: 0.8,
       skinTone: '#ffd1b3',
@@ -802,6 +1025,8 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       hairColor: '#4a2e18',
       topColor: '#16a34a',
       bottomColor: '#334155',
+      affinity: 65,
+      relationshipStatus: 'amigo',
     },
     {
       id: 'npc_antenor',
@@ -816,8 +1041,11 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       routeIndex: 0,
       dialog: [
         'Seja muito bem-vindo à Auto Prime Veículos!',
-        'Aqui você encontra hatches populares, esportivos GT e SUVs novinhos.',
-        'Junte dinheiro nas entregas e saia motorizado!',
+        'Aqui você encontra hatches populares, coupés GT turbo e SUVs 4x4 novinhos.',
+        'Junte dinheiro nas entregas e saia motorizado com garantia total!',
+      ],
+      options: [
+        { text: 'Quero ver os carros disponíveis!', replyText: 'Venha conferir nosso showroom!', action: 'open_store', storeCategory: 'concessionaria' },
       ],
       speed: 0.9,
       skinTone: '#d29b74',
@@ -825,6 +1053,62 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       hairColor: '#e2e8f0',
       topColor: '#0f172a',
       bottomColor: '#475569',
+      affinity: 55,
+      relationshipStatus: 'conhecido',
+    },
+    {
+      id: 'npc_marcos',
+      name: 'Marcos (Mecânico Chefe)',
+      role: 'Especialista em Tuning Auto Car',
+      position: [oficinaX, 0, oficinaZ - 4.5],
+      heading: 0,
+      route: [
+        [oficinaX - 2, oficinaZ - 4.5],
+        [oficinaX + 2, oficinaZ - 4.5],
+      ],
+      routeIndex: 0,
+      dialog: [
+        'E aí, piloto! Quer deixar sua máquina voando baixo?',
+        'Fazemos pinturas metálicas exclusivas e instalamos Kit de Tuning esportivo!',
+      ],
+      options: [
+        { text: 'Quero dar uma geral no meu carro!', replyText: 'Pode deixar com a nossa equipe!', action: 'open_store', storeCategory: 'oficina' },
+      ],
+      speed: 1.0,
+      skinTone: '#b57954',
+      hairStyle: 'raspado',
+      hairColor: '#1a1105',
+      topColor: '#0284c7',
+      bottomColor: '#1e293b',
+      affinity: 60,
+      relationshipStatus: 'amigo',
+    },
+    {
+      id: 'npc_gabriela',
+      name: 'Gabriela (Gerente Shopping)',
+      role: 'Gerente do Shopping Metrópole',
+      position: [mallX, 0, mallZ + 8.5],
+      heading: Math.PI,
+      route: [
+        [mallX - 3, mallZ + 8.5],
+        [mallX + 3, mallZ + 8.5],
+      ],
+      routeIndex: 0,
+      dialog: [
+        'Bem-vindo ao Shopping Center Metrópole!',
+        'Temos praça de alimentação com lanches deliciosos, eletrônicos e moda!',
+      ],
+      options: [
+        { text: 'Quero ver as lojas do shopping!', replyText: 'Aproveite nossas ofertas exclusivas!', action: 'open_store', storeCategory: 'shopping' },
+      ],
+      speed: 1.0,
+      skinTone: '#ffd1b3',
+      hairStyle: 'longo',
+      hairColor: '#eab308',
+      topColor: '#7c3aed',
+      bottomColor: '#0f172a',
+      affinity: 50,
+      relationshipStatus: 'conhecido',
     },
     {
       id: 'npc_ped_1',
@@ -837,8 +1121,8 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       ],
       routeIndex: 0,
       dialog: [
-        'E aí, beleza? Que dia bonito para caminhar na praça!',
-        'Você viu o carro novo na concessionária Auto Prime? Coisa linda.',
+        'E aí, beleza? Que dia gostoso para caminhar na praça!',
+        'Você viu o movimento novo no Shopping Metrópole? Coisa fina.',
       ],
       speed: 2.2,
       skinTone: '#ffd1b3',
@@ -846,11 +1130,13 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       hairColor: '#1a1105',
       topColor: '#3b82f6',
       bottomColor: '#0f172a',
+      affinity: 40,
+      relationshipStatus: 'conhecido',
     },
     {
       id: 'npc_ped_2',
-      name: 'Juliana (Estudante)',
-      role: 'Pedestre',
+      name: 'Camila (Designer)',
+      role: 'Moradora de Vila das Flores',
       position: [8, 0, 10],
       heading: Math.PI,
       route: [
@@ -858,7 +1144,7 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       ],
       routeIndex: 0,
       dialog: [
-        'Oi! O pão de queijo da padaria hoje acabou de sair do forno!',
+        'Oi! O pão de queijo da padaria acabou de sair do forno!',
         'Cuidado com esses motoristas na Avenida Brasil, ninguém dá seta!',
       ],
       speed: 2.4,
@@ -867,27 +1153,8 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       hairColor: '#1a1105',
       topColor: '#ec4899',
       bottomColor: '#1e293b',
-    },
-    {
-      id: 'npc_ped_3',
-      name: 'Carlos (Entregador)',
-      role: 'Motoboy & Parceiro',
-      position: [-20, 0, 30],
-      heading: 0,
-      route: [
-        [-20, 30], [-45, 30], [-45, 10], [-20, 10]
-      ],
-      routeIndex: 0,
-      dialog: [
-        'E aí, colega de entrega! Se acelerar o passo dá pra tirar uma grana boa hoje!',
-        'Não esqueça de descansar na sua casa quando a energia estiver baixa!',
-      ],
-      speed: 2.5,
-      skinTone: '#b57954',
-      hairStyle: 'raspado',
-      hairColor: '#1a1105',
-      topColor: '#f97316',
-      bottomColor: '#0284c7',
+      affinity: 45,
+      relationshipStatus: 'conhecido',
     },
   ];
 
@@ -900,7 +1167,7 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
       position: npc.position,
       radius: 2.6,
       promptText: `[E] Conversar com ${npc.name.split(' ')[0]}`,
-      extraData: { npcId: npc.id, dialog: npc.dialog, role: npc.role },
+      extraData: { npcId: npc.id, dialog: npc.dialog, role: npc.role, options: npc.options },
     });
   });
 
@@ -917,3 +1184,4 @@ export function buildCity(renderer?: THREE.WebGLRenderer): CityBuildResult {
     trafficVehicles,
   };
 }
+

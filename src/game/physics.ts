@@ -86,8 +86,8 @@ export function updatePlayerPhysics(
   delta: number,
   boxes: CollisionBox[]
 ): void {
-  const walkSpeed = 5.0; // m/s (~18 km/h)
-  const runSpeed = 9.5;  // m/s (~34 km/h)
+  const walkSpeed = 5.8; // m/s (~21 km/h) natural brisk walk
+  const runSpeed = 10.5; // m/s (~38 km/h) responsive sprint
   const targetSpeed = input.run ? runSpeed : walkSpeed;
 
   const fwd = input.forward; // 1 for W, -1 for S
@@ -97,15 +97,14 @@ export function updatePlayerPhysics(
 
   if (inputMag > 0.01) {
     // Camera forward vector on horizontal XZ plane: (sin(yaw), cos(yaw))
-    // Looking from camera position towards player
     const camFwdX = Math.sin(input.cameraAngleY);
     const camFwdZ = Math.cos(input.cameraAngleY);
 
-    // Camera right vector on horizontal XZ plane: (-cos(yaw), sin(yaw))
-    // In Three.js with camera looking at player, screen-right is (-cos(yaw), sin(yaw))
-    // Perpendicular to forward: dot((sin, cos), (-cos, sin)) = -sin*cos + cos*sin = 0
-    const camRightX = -Math.cos(input.cameraAngleY);
-    const camRightZ = Math.sin(input.cameraAngleY);
+    // Camera right vector on horizontal XZ plane: (cos(yaw), -sin(yaw))
+    // With yaw = 0, looking towards +Z, screen-right is +X: cos(0)=1, -sin(0)=0 -> (+1, 0)
+    // D moves right (+1), A moves left (-1)
+    const camRightX = Math.cos(input.cameraAngleY);
+    const camRightZ = -Math.sin(input.cameraAngleY);
 
     // Diagonal movement normalized to 1.0 (prevents 1.414x speed advantage)
     const normFwd = fwd / inputMag;
@@ -120,18 +119,18 @@ export function updatePlayerPhysics(
     let angleDiff = desiredAngle - player.rotationY;
     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-    player.rotationY += angleDiff * Math.min(1, delta * 15);
+    player.rotationY += angleDiff * Math.min(1, delta * 18);
 
     // Target velocity along movement direction
     const targetVx = moveDirX * targetSpeed;
     const targetVz = moveDirZ * targetSpeed;
 
-    player.vx += (targetVx - player.vx) * Math.min(1, delta * 12);
-    player.vz += (targetVz - player.vz) * Math.min(1, delta * 12);
+    player.vx += (targetVx - player.vx) * Math.min(1, delta * 14);
+    player.vz += (targetVz - player.vz) * Math.min(1, delta * 14);
   } else {
     // Smooth damping to stop with no sudden drift
-    player.vx += (0 - player.vx) * Math.min(1, delta * 14);
-    player.vz += (0 - player.vz) * Math.min(1, delta * 14);
+    player.vx += (0 - player.vx) * Math.min(1, delta * 16);
+    player.vz += (0 - player.vz) * Math.min(1, delta * 16);
     if (Math.hypot(player.vx, player.vz) < 0.05) {
       player.vx = 0;
       player.vz = 0;
@@ -179,15 +178,15 @@ export function updateCarPhysics(
   boxes: CollisionBox[],
   speedMultiplier: number = 1.0
 ): { speedKmH: number; isColliding: boolean } {
-  const maxForwardSpeed = 25 * speedMultiplier; // m/s (~90-105 km/h)
-  const maxReverseSpeed = -8.5; // m/s (~30 km/h)
-  const acceleration = 13.0 * speedMultiplier;
-  const brakingDecel = 26.0;
-  const naturalDrag = 3.6;
-  const maxSteer = 0.55;
+  const maxForwardSpeed = 30 * speedMultiplier; // m/s (~108 km/h, up to 135 km/h with tuning)
+  const maxReverseSpeed = -10.5; // m/s (~38 km/h)
+  const acceleration = 16.0 * speedMultiplier; // More responsive, punchy Brazilian street feel
+  const brakingDecel = 28.0;
+  const naturalDrag = 3.2;
+  const maxSteer = 0.58;
 
   const targetSteer = input.steer * maxSteer;
-  car.steerAngle += (targetSteer - car.steerAngle) * Math.min(1, delta * 9);
+  car.steerAngle += (targetSteer - car.steerAngle) * Math.min(1, delta * 10);
 
   if (input.brake) {
     if (car.speed > 0.5) {
@@ -211,9 +210,12 @@ export function updateCarPhysics(
     }
   }
 
-  if (Math.abs(car.speed) > 0.1) {
-    const turnSign = car.speed >= 0 ? 1 : -1;
-    const turnRate = (car.speed / 3.8) * car.steerAngle * turnSign;
+  // Realistic Ackerman-inspired yaw rate:
+  // When forward (speed > 0), turning wheel right rotates heading clockwise (yaw angle increases or decreases based on coordinate convention).
+  // When in reverse (speed < 0), turning wheel right directs the rear to the right, naturally swinging the vehicle's heading opposite.
+  // Using pure car.speed without double-negation turnSign ensures reverse steering turns in the intuitive, real-car direction.
+  if (Math.abs(car.speed) > 0.08) {
+    const turnRate = (car.speed / 3.2) * car.steerAngle;
     car.rotationY += turnRate * delta;
   }
 

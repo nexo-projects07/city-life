@@ -6,6 +6,8 @@ interface PauseMenuProps {
   onResume: () => void;
   onSaveGame: () => void;
   onResetPosition: () => void;
+  onResetCar?: () => void;
+  onStartSenaiDemo?: () => void;
   onOpenCharacterCreator: () => void;
   onResetAllProgress: () => void;
   mouseSensitivity: number;
@@ -18,6 +20,8 @@ export const PauseMenu: React.FC<PauseMenuProps> = ({
   onResume,
   onSaveGame,
   onResetPosition,
+  onResetCar,
+  onStartSenaiDemo,
   onOpenCharacterCreator,
   onResetAllProgress,
   mouseSensitivity,

@@ -14,24 +14,19 @@ export interface InventoryItem {
   id: string;
   name: string;
   count: number;
-  type: 'food' | 'drink' | 'tool' | 'key' | 'healing';
+  type: 'food' | 'drink' | 'tool' | 'key' | 'healing' | 'clothes';
+  effectType?: 'hunger' | 'energy' | 'hygiene' | 'health';
   effectValue?: number;
   description: string;
+  icon?: string;
 }
 
-export interface StoryMission {
-  id: string;
-  chapter: number;
-  title: string;
-  description: string;
-  objectiveText: string;
-  giverName: string;
-  targetPosition: [number, number, number];
-  targetName: string;
-  rewardMoney: number;
-  rewardReputation: number;
-  isCompleted: boolean;
-  type: 'story' | 'delivery' | 'police' | 'side';
+export interface PlayerNeeds {
+  hunger: number;   // 0 - 100 (Fome)
+  energy: number;   // 0 - 100 (Energia)
+  hygiene: number;  // 0 - 100 (Higiene)
+  sleep: number;    // 0 - 100 (Sono / Disposição)
+  health: number;   // 0 - 100 (Vida)
 }
 
 export interface DeliveryMission {
@@ -45,6 +40,21 @@ export interface DeliveryMission {
   itemDescription: string;
 }
 
+export interface AppRide {
+  id: string;
+  passengerName: string;
+  passengerRole: string;
+  passengerSkin: string;
+  passengerTop: string;
+  pickupPosition: [number, number, number];
+  pickupAddress: string;
+  destinationPosition: [number, number, number];
+  destinationAddress: string;
+  fare: number;
+  tip: number;
+  state: 'driving_to_pickup' | 'passenger_boarding' | 'driving_to_dest' | 'completed';
+}
+
 export type InteractionType =
   | 'delivery_hub'
   | 'store_padaria'
@@ -52,9 +62,9 @@ export type InteractionType =
   | 'store_oficina'
   | 'store_concessionaria'
   | 'store_roupas'
-  | 'store_posto'
+  | 'store_shopping'
   | 'store_hospital'
-  | 'store_delegacia'
+  | 'store_posto'
   | 'delivery_dropoff'
   | 'player_house_door'
   | 'player_house_bed'
@@ -62,11 +72,17 @@ export type InteractionType =
   | 'player_house_tv'
   | 'player_house_fridge'
   | 'player_house_sofa'
+  | 'player_house_shower'
   | 'player_house_save_station'
   | 'player_house_exit'
-  | 'property_purchase'
+  | 'bus_stop'
   | 'npc_dialog'
-  | 'beto_companion';
+  | 'uber_pickup'
+  | 'uber_dropoff'
+  | 'senai_school'
+  | 'senai_package_pickup'
+  | 'real_estate_metropole'
+  | 'real_estate_torre';
 
 export interface InteractionPoint {
   id: string;
@@ -78,6 +94,15 @@ export interface InteractionPoint {
   extraData?: Record<string, unknown>;
 }
 
+export interface DialogOption {
+  text: string;
+  replyText: string;
+  affinityBonus?: number;
+  nextDialogIndex?: number;
+  action?: 'accept_delivery' | 'open_store' | 'start_ride' | 'date_invite';
+  storeCategory?: StoreCategory;
+}
+
 export interface NPCData {
   id: string;
   name: string;
@@ -87,13 +112,16 @@ export interface NPCData {
   route: Array<[number, number]>;
   routeIndex: number;
   dialog: string[];
+  options?: DialogOption[];
   speed: number;
   skinTone: string;
   hairStyle: 'curto' | 'degrade' | 'dreads' | 'longo' | 'raspado';
   hairColor: string;
   topColor: string;
   bottomColor: string;
-  isHostile?: boolean;
+  affinity?: number;
+  relationshipStatus?: 'conhecido' | 'amigo' | 'melhor_amigo' | 'paquera' | 'namorando';
+  isRomanceOption?: boolean;
   health?: number;
 }
 
@@ -104,8 +132,8 @@ export interface TrafficVehicleData {
   position: [number, number, number];
   heading: number;
   speed: number;
-  routeAxis: 'x' | 'z';
-  coordFixed: number;
+  laneAxis: 'x' | 'z';
+  fixedCoord: number;
   direction: 1 | -1;
   minBound: number;
   maxBound: number;
@@ -117,9 +145,9 @@ export type StoreCategory =
   | 'roupas'
   | 'oficina'
   | 'concessionaria'
-  | 'posto'
+  | 'shopping'
   | 'hospital'
-  | 'delegacia';
+  | 'posto';
 
 export interface StoreItem {
   id: string;
@@ -127,37 +155,27 @@ export interface StoreItem {
   price: number;
   description: string;
   category: StoreCategory;
-  effectType?: 'energy' | 'custom_color' | 'car_repair' | 'car_tuning' | 'buy_car' | 'heal' | 'bribe_police';
+  effectType?: 'energy' | 'hunger' | 'hygiene' | 'health' | 'custom_color' | 'car_repair' | 'car_tuning' | 'buy_car' | 'inventory';
   effectValue?: number | string;
 }
 
-export interface PhoneMessage {
+export interface PhoneChatMessage {
   id: string;
-  sender: string;
-  senderRole: string;
+  sender: 'npc' | 'player';
   text: string;
   timestamp: string;
-  read: boolean;
-  missionTriggerId?: string;
 }
 
 export interface PhoneContact {
   id: string;
   name: string;
   role: string;
-  phone: string;
   avatarColor: string;
-  status: 'online' | 'ocupado';
-  messages: PhoneMessage[];
-}
-
-export interface Property {
-  id: string;
-  name: string;
-  price: number;
-  address: string;
-  isOwned: boolean;
-  position: [number, number, number];
+  affinity: number; // 0 - 100
+  relationshipStatus: 'conhecido' | 'amigo' | 'melhor_amigo' | 'paquera' | 'namorando';
+  isRomanceCandidate?: boolean;
+  chatHistory: PhoneChatMessage[];
+  quickReplies?: Array<{ text: string; response: string; affinityDelta: number }>;
 }
 
 export interface GameSaveData {
@@ -165,7 +183,13 @@ export interface GameSaveData {
   character: CharacterConfig;
   money: number;
   energy: number;
+  hunger?: number;
+  hygiene?: number;
+  sleep?: number;
+  health?: number;
+  wantedLevel?: number;
   completedDeliveries: number;
+  completedRides?: number;
   reputation: number;
   playerPosition: [number, number, number];
   playerRotation: number;
@@ -175,10 +199,11 @@ export interface GameSaveData {
   hasCarTuning?: boolean;
   timeOfDay?: number;
   isInsideHouse?: boolean;
-  wantedLevel?: number; // 0 to 3
-  currentStoryIndex?: number;
-  inventory?: InventoryItem[];
+  career?: 'livre' | 'entregador' | 'motorista' | 'comercio';
   ownedProperties?: string[];
+  weather?: 'sunny' | 'cloudy' | 'rain';
+  inventory?: InventoryItem[];
   contacts?: PhoneContact[];
   lastSavedAt: number;
 }
+

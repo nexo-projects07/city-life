@@ -32,6 +32,9 @@ export interface GameEngineCallbacks {
   onTimeUpdate?: (timeOfDay: number) => void;
   onOpenNpcDialog?: (npc: NPCData) => void;
   onHouseTransition?: (isInside: boolean) => void;
+  onTriggerInteraction?: () => void;
+  onNpcHit?: (npc: NPCData) => void;
+  onBoardBus?: (stopName: string) => void;
 }
 
 export class GameEngine {
@@ -76,11 +79,14 @@ export class GameEngine {
   private previousMouseX: number = 0;
   private previousMouseY: number = 0;
 
-  // Input states & blockers
   public keys: { [key: string]: boolean } = {};
   public isInputBlocked: boolean = false;
   public mouseSensitivity: number = 0.0025;
   public speedMultiplier: number = 1.0;
+
+  // Weather & Environment
+  public weather: 'sunny' | 'cloudy' | 'rain' = 'sunny';
+  private rainPoints: THREE.Points | null = null;
 
   // Callbacks to React HUD
   private callbacks: GameEngineCallbacks;
@@ -219,7 +225,27 @@ export class GameEngine {
     // 9. Instantiate NPC 3D Rigs
     this.setupNPCs();
 
-    // 10. Listeners & Animation Loop
+    // 10. Rain Particle System
+    const rainCount = 1400;
+    const rainGeo = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(rainCount * 3);
+    for (let i = 0; i < rainCount; i++) {
+      rainPositions[i * 3] = (Math.random() - 0.5) * 50;
+      rainPositions[i * 3 + 1] = Math.random() * 24;
+      rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+    }
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMat = new THREE.PointsMaterial({
+      color: 0x93c5fd,
+      size: 0.18,
+      transparent: true,
+      opacity: 0.7,
+    });
+    this.rainPoints = new THREE.Points(rainGeo, rainMat);
+    this.rainPoints.visible = false;
+    this.scene.add(this.rainPoints);
+
+    // 11. Listeners & Animation Loop
     this.setupListeners();
     this.updateLighting(0);
     this.animate();
@@ -284,6 +310,36 @@ export class GameEngine {
     }
   }
 
+  private passengerRig: CharacterRig | null = null;
+
+  public setPassengerInCar(config: CharacterConfig | null) {
+    if (!this.carRig) return;
+    if (this.passengerRig) {
+      this.carRig.group.remove(this.passengerRig.group);
+      this.passengerRig = null;
+    }
+    if (config) {
+      this.passengerRig = createCharacterRig(config);
+      this.passengerRig.group.position.set(0.5, 0.45, -0.15);
+      this.passengerRig.group.scale.set(0.85, 0.85, 0.85);
+      this.passengerRig.leftLeg.rotation.x = -1.4;
+      this.passengerRig.rightLeg.rotation.x = -1.4;
+      this.carRig.group.add(this.passengerRig.group);
+    }
+  }
+
+  public setActiveWaypoint(pos: [number, number, number] | null, color: number = 0x38bdf8) {
+    if (this.waypointGroup) {
+      this.scene.remove(this.waypointGroup);
+      this.waypointGroup = null;
+    }
+    if (pos) {
+      this.waypointGroup = createWaypointMarker(color);
+      this.waypointGroup.position.set(pos[0], pos[1], pos[2]);
+      this.scene.add(this.waypointGroup);
+    }
+  }
+
   public setActiveMission(mission: DeliveryMission | null) {
     this.currentActiveMission = mission;
 
@@ -291,20 +347,76 @@ export class GameEngine {
       this.characterRig.setBackpackVisible(mission !== null);
     }
 
-    if (this.waypointGroup) {
-      this.scene.remove(this.waypointGroup);
-      this.waypointGroup = null;
-    }
-
     if (mission) {
-      this.waypointGroup = createWaypointMarker(0xf59e0b);
-      this.waypointGroup.position.set(
-        mission.targetPosition[0],
-        mission.targetPosition[1],
-        mission.targetPosition[2]
-      );
-      this.scene.add(this.waypointGroup);
+      this.setActiveWaypoint(mission.targetPosition, 0xf59e0b);
+    } else {
+      this.setActiveWaypoint(null);
     }
+  }
+
+  public isPunching: boolean = false;
+  private punchTimer: number | null = null;
+
+  public triggerPunch() {
+    if (this.isDriving || this.isInsideHouse || this.isInputBlocked) return;
+    this.isPunching = true;
+    soundManager.playPunch();
+
+    if (this.punchTimer) clearTimeout(this.punchTimer);
+    this.punchTimer = window.setTimeout(() => {
+      this.isPunching = false;
+    }, 280);
+
+    // Hit detection for nearby NPCs (within 2.2m)
+    const px = this.playerPhysics.x;
+    const pz = this.playerPhysics.z;
+    for (const [id, { rig, data }] of this.npcRigs.entries()) {
+      const dist = Math.hypot(px - data.position[0], pz - data.position[2]);
+      if (dist < 2.2) {
+        soundManager.playPunch();
+        this.callbacks.onNpcHit?.(data);
+        break;
+      }
+    }
+  }
+
+  public setWeather(w: 'sunny' | 'cloudy' | 'rain') {
+    this.weather = w;
+    if (this.rainPoints) {
+      this.rainPoints.visible = w === 'rain';
+    }
+    if (w === 'rain') {
+      soundManager.startRain();
+    } else {
+      soundManager.stopRain();
+    }
+    this.updateLighting(0);
+  }
+
+  public resetVehicleToRoad() {
+    this.carPhysics.x = 0;
+    this.carPhysics.z = 10;
+    this.carPhysics.speed = 0;
+    this.carPhysics.steerAngle = 0;
+    this.carPhysics.rotationY = 0;
+    if (this.carRig) {
+      this.carRig.group.position.set(0, 0, 10);
+      this.carRig.group.rotation.y = 0;
+    }
+    soundManager.playCashSound();
+  }
+
+  public resetPlayerToSidewalk() {
+    this.playerPhysics.x = 0;
+    this.playerPhysics.y = 0;
+    this.playerPhysics.z = 0;
+    this.playerPhysics.vx = 0;
+    this.playerPhysics.vy = 0;
+    this.playerPhysics.vz = 0;
+    if (this.characterRig) {
+      this.characterRig.group.position.set(0, 0, 0);
+    }
+    soundManager.playCashSound();
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
@@ -317,7 +429,15 @@ export class GameEngine {
     this.keys[e.code] = true;
 
     if (e.code === 'KeyE') {
-      this.triggerInteraction();
+      if (this.callbacks.onTriggerInteraction) {
+        this.callbacks.onTriggerInteraction();
+      } else {
+        this.triggerInteraction();
+      }
+    }
+
+    if (e.code === 'KeyF' && !this.isDriving) {
+      this.triggerPunch();
     }
 
     if (e.code === 'KeyH' && this.isDriving) {
@@ -380,10 +500,9 @@ export class GameEngine {
     this.renderer.setSize(width, height);
   };
 
-  // Day & Night Cycle update
+  // Day & Night Cycle update (Calibrated timescale: 1s real = 0.012 in-game hours, ~33 mins per day)
   private updateLighting(delta: number) {
-    // 1 real second = 0.1 game hours (full day ~4 minutes)
-    this.timeOfDay = (this.timeOfDay + delta * 0.1) % 24;
+    this.timeOfDay = (this.timeOfDay + delta * 0.012) % 24;
     this.callbacks.onTimeUpdate?.(this.timeOfDay);
 
     const t = this.timeOfDay;
@@ -417,6 +536,15 @@ export class GameEngine {
       sunIntensity = 0.3 + ratio * 1.0;
       skyColor.lerpColors(new THREE.Color(0x1e1b4b), new THREE.Color(0xfbcfe8), ratio);
       streetLightsOn = ratio < 0.6;
+    }
+
+    if (this.weather === 'rain') {
+      skyColor.setHex(0x334155);
+      sunColor.setHex(0x94a3b8);
+      sunIntensity *= 0.35;
+    } else if (this.weather === 'cloudy') {
+      skyColor.lerp(new THREE.Color(0x64748b), 0.55);
+      sunIntensity *= 0.65;
     }
 
     if (this.scene.background instanceof THREE.Color) {
@@ -755,7 +883,7 @@ export class GameEngine {
       if (this.characterRig) {
         this.characterRig.group.position.set(this.playerPhysics.x, this.playerPhysics.y, this.playerPhysics.z);
         this.characterRig.group.rotation.y = this.playerPhysics.rotationY;
-        this.characterRig.updateAnimation(moveMag, isRunning, !this.playerPhysics.isGrounded, time);
+        this.characterRig.updateAnimation(moveMag, isRunning, !this.playerPhysics.isGrounded, time, this.isPunching);
       }
 
       this.callbacks.onPlayerPositionUpdate(
@@ -871,7 +999,27 @@ export class GameEngine {
       this.camera.updateProjectionMatrix();
     }
 
-    // 7. Render Frame
+    // 7. Rain Particle Animation
+    if (this.weather === 'rain' && this.rainPoints && !this.isInsideHouse) {
+      this.rainPoints.visible = true;
+      const targetX = this.isDriving ? this.carPhysics.x : this.playerPhysics.x;
+      const targetZ = this.isDriving ? this.carPhysics.z : this.playerPhysics.z;
+      this.rainPoints.position.set(targetX, 0, targetZ);
+
+      const posAttr = this.rainPoints.geometry.attributes.position;
+      const posArray = posAttr.array as Float32Array;
+      for (let i = 1; i < posArray.length; i += 3) {
+        posArray[i] -= delta * 36;
+        if (posArray[i] < 0) {
+          posArray[i] = 22 + Math.random() * 4;
+        }
+      }
+      posAttr.needsUpdate = true;
+    } else if (this.rainPoints) {
+      this.rainPoints.visible = false;
+    }
+
+    // 8. Render Frame
     this.renderer.render(this.scene, this.camera);
   };
 

@@ -36,7 +36,7 @@ export interface CharacterRig {
   rightArm: THREE.Group;
   head: THREE.Group;
   backpack: THREE.Mesh;
-  updateAnimation: (speed: number, isRunning: boolean, isJumping: boolean, time: number) => void;
+  updateAnimation: (speed: number, isRunning: boolean, isJumping: boolean, time: number, isPunching?: boolean) => void;
   setBackpackVisible: (visible: boolean) => void;
 }
 
@@ -69,38 +69,39 @@ export function createCharacterRig(config: CharacterConfig): CharacterRig {
     roughness: 0.5,
   });
 
-  // Pelvis / Hips
+  // Pelvis / Hips (centered at y=0.88)
   const hips = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.16, 0.22), bottomMat);
   hips.position.y = 0.88;
   hips.castShadow = true;
   group.add(hips);
 
   // Left Leg Pivot (at hip level y=0.84)
+  // Leg extends from y=0.84 down to y=0.16; shoe from y=0.16 to y=0.00 (flush on ground)
   const leftLeg = new THREE.Group();
   leftLeg.position.set(-0.11, 0.84, 0);
-  const leftLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.44, 0.16), bottomMat);
-  leftLegMesh.position.y = -0.22;
+  const leftLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.68, 0.16), bottomMat);
+  leftLegMesh.position.y = -0.34;
   leftLegMesh.castShadow = true;
   leftLeg.add(leftLegMesh);
 
-  // Left Shin / Shoe
-  const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.14, 0.24), shoesMat);
-  leftShoe.position.set(0, -0.42, 0.03);
+  // Left Shin / Shoe (bottom flush at y=0.0)
+  const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.16, 0.25), shoesMat);
+  leftShoe.position.set(0, -0.76, 0.03);
   leftShoe.castShadow = true;
   leftLeg.add(leftShoe);
   group.add(leftLeg);
 
-  // Right Leg Pivot
+  // Right Leg Pivot (at hip level y=0.84)
   const rightLeg = new THREE.Group();
   rightLeg.position.set(0.11, 0.84, 0);
-  const rightLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.44, 0.16), bottomMat);
-  rightLegMesh.position.y = -0.22;
+  const rightLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.68, 0.16), bottomMat);
+  rightLegMesh.position.y = -0.34;
   rightLegMesh.castShadow = true;
   rightLeg.add(rightLegMesh);
 
-  // Right Shin / Shoe
-  const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.14, 0.24), shoesMat);
-  rightShoe.position.set(0, -0.42, 0.03);
+  // Right Shin / Shoe (bottom flush at y=0.0)
+  const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.16, 0.25), shoesMat);
+  rightShoe.position.set(0, -0.76, 0.03);
   rightShoe.castShadow = true;
   rightLeg.add(rightShoe);
   group.add(rightLeg);
@@ -219,13 +220,29 @@ export function createCharacterRig(config: CharacterConfig): CharacterRig {
   group.add(shadowMesh);
 
   // Animation controller
-  const updateAnimation = (speed: number, isRunning: boolean, isJumping: boolean, time: number) => {
+  const updateAnimation = (
+    speed: number,
+    isRunning: boolean,
+    isJumping: boolean,
+    time: number,
+    isPunching: boolean = false
+  ) => {
+    if (isPunching) {
+      rightArm.rotation.x = -1.55;
+      rightArm.rotation.y = -0.25;
+      rightArm.position.z = 0.18;
+      torso.rotation.y = -0.22;
+    } else {
+      rightArm.position.z = 0;
+      torso.rotation.y = 0;
+    }
+
     if (isJumping) {
       // In air pose
       leftLeg.rotation.x = -0.4;
       rightLeg.rotation.x = 0.5;
       leftArm.rotation.x = -0.8;
-      rightArm.rotation.x = -0.8;
+      if (!isPunching) rightArm.rotation.x = -0.8;
       torso.rotation.x = 0.1;
       return;
     }
@@ -238,7 +255,7 @@ export function createCharacterRig(config: CharacterConfig): CharacterRig {
       leftLeg.rotation.x = swing;
       rightLeg.rotation.x = -swing;
       leftArm.rotation.x = -swing * 0.9;
-      rightArm.rotation.x = swing * 0.9;
+      if (!isPunching) rightArm.rotation.x = swing * 0.9;
 
       // Slight forward lean when running
       torso.rotation.x = isRunning ? 0.18 : 0.05;
@@ -249,7 +266,7 @@ export function createCharacterRig(config: CharacterConfig): CharacterRig {
       leftLeg.rotation.x = 0;
       rightLeg.rotation.x = 0;
       leftArm.rotation.x = idle;
-      rightArm.rotation.x = -idle;
+      if (!isPunching) rightArm.rotation.x = -idle;
       torso.rotation.x = 0;
       hips.position.y = 0.88;
       head.position.y = 1.62 + idle * 0.3;
@@ -1856,4 +1873,256 @@ export function createBusStop(): THREE.Group {
 
   return shelter;
 }
+
+// Shopping Center Metrópole
+export function createShoppingMall(): THREE.Group {
+  const mall = new THREE.Group();
+
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.3 });
+  const goldTrimMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.3, metalness: 0.8 });
+  const concreteMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.8 });
+
+  const w = 24;
+  const h = 11;
+  const d = 16;
+
+  // Main 2-story building body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  mall.add(body);
+
+  // Modern glass facade & grand atrium entrance
+  const atriumGlass = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 0.2), glassMaterial);
+  atriumGlass.position.set(0, 5, d / 2 + 0.1);
+  mall.add(atriumGlass);
+
+  // Canopy over entrance
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(16, 0.3, 3.5), goldTrimMat);
+  canopy.position.set(0, 4.2, d / 2 + 1.8);
+  canopy.castShadow = true;
+  mall.add(canopy);
+
+  // Columns for canopy
+  const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 4.2, 8), concreteMat);
+  c1.position.set(-7, 2.1, d / 2 + 3.2);
+  mall.add(c1);
+
+  const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 4.2, 8), concreteMat);
+  c2.position.set(7, 2.1, d / 2 + 3.2);
+  mall.add(c2);
+
+  // Grand Sign ("SHOPPING METRÓPOLE")
+  const mallSignTex = createSignTexture('SHOPPING METRÓPOLE', 'LOJAS, PRAÇA DE ALIMENTAÇÃO E CINEMA', '#f59e0b');
+  const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(16, 2.4), new THREE.MeshBasicMaterial({ map: mallSignTex }));
+  signMesh.position.set(0, h - 1.2, d / 2 + 0.2);
+  mall.add(signMesh);
+
+  return mall;
+}
+
+// Hospital & Farmácia Central
+export function createHospital(): THREE.Group {
+  const hosp = new THREE.Group();
+
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 });
+  const blueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.5 });
+  const redCrossMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, emissive: 0xdc2626, emissiveIntensity: 0.6 });
+
+  const w = 18;
+  const h = 8;
+  const d = 14;
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), whiteMat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  hosp.add(body);
+
+  // Blue top trim
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, 0.8, d + 0.2), blueMat);
+  trim.position.set(0, h - 0.4, 0);
+  hosp.add(trim);
+
+  // Hospital Cross Symbol (Vertical and Horizontal Bars)
+  const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.7, 2.4, 0.15), redCrossMat);
+  crossV.position.set(0, h - 2.2, d / 2 + 0.1);
+  hosp.add(crossV);
+
+  const crossH = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.15), redCrossMat);
+  crossH.position.set(0, h - 2.2, d / 2 + 0.1);
+  hosp.add(crossH);
+
+  // Sign
+  const hospSignTex = createSignTexture('HOSPITAL & FARMÁCIA', 'PRONTO ATENDIMENTO 24 HORAS', '#0284c7');
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(12, 1.8), new THREE.MeshBasicMaterial({ map: hospSignTex }));
+  sign.position.set(0, 3.8, d / 2 + 0.15);
+  hosp.add(sign);
+
+  // Glass emergency entrance
+  const entrance = new THREE.Mesh(new THREE.BoxGeometry(6, 2.6, 0.1), glassMaterial);
+  entrance.position.set(0, 1.3, d / 2 + 0.05);
+  hosp.add(entrance);
+
+  return hosp;
+}
+
+// Posto de Combustível Brasil (Gas Station)
+export function createGasStation(): THREE.Group {
+  const station = new THREE.Group();
+
+  const yellowMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+  const greenMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.5 });
+  const concreteMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+
+  // Large overhead Canopy (16m x 10m x 0.8m)
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(16, 0.8, 10), yellowMat);
+  canopy.position.set(0, 4.8, 0);
+  canopy.castShadow = true;
+  station.add(canopy);
+
+  // Green canopy fascia border
+  const fascia = new THREE.Mesh(new THREE.BoxGeometry(16.2, 0.3, 10.2), greenMat);
+  fascia.position.set(0, 5.0, 0);
+  station.add(fascia);
+
+  // Canopy Pillars (4 steel pillars)
+  const pillarCoords = [
+    [-6, -3], [6, -3],
+    [-6, 3], [6, 3],
+  ];
+  pillarCoords.forEach(([px, pz]) => {
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 4.8, 12), concreteMat);
+    pillar.position.set(px, 2.4, pz);
+    pillar.castShadow = true;
+    station.add(pillar);
+  });
+
+  // Fuel Pump Islands (2 islands with 4 pumps)
+  [-3.5, 3.5].forEach((ix) => {
+    const island = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 5.0), concreteMat);
+    island.position.set(ix, 0.12, 0);
+    station.add(island);
+
+    [-1.2, 1.2].forEach((pz) => {
+      const pump = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.6, 0.7), darkMat);
+      pump.position.set(ix, 0.95, pz);
+      pump.castShadow = true;
+      station.add(pump);
+
+      // Yellow dispenser display
+      const disp = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.75), yellowMat);
+      disp.position.set(ix, 1.25, pz);
+      station.add(disp);
+    });
+  });
+
+  // Convenience Store in background
+  const shop = new THREE.Mesh(new THREE.BoxGeometry(12, 4, 6), concreteMat);
+  shop.position.set(0, 2, -10);
+  shop.castShadow = true;
+  station.add(shop);
+
+  const shopGlass = new THREE.Mesh(new THREE.BoxGeometry(8, 2.2, 0.1), glassMaterial);
+  shopGlass.position.set(0, 1.4, -6.95);
+  station.add(shopGlass);
+
+  const shopSignTex = createSignTexture('POSTO BRASIL', 'COMBUSTÍVEIS & CONVENIÊNCIA BR', '#eab308');
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 1.4), new THREE.MeshBasicMaterial({ map: shopSignTex }));
+  sign.position.set(0, 4.8, 5.15);
+  station.add(sign);
+
+  return station;
+}
+
+// Escola Técnica SENAI Vila Esperança (Campus de Tecnologia & Robótica Industrial)
+export function createSenaiCampus(): THREE.Group {
+  const campus = new THREE.Group();
+
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 });
+  const senaiBlueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.4, metalness: 0.1 });
+  const senaiRedMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
+  const concreteMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0x38bdf8,
+    roughness: 0.1,
+    metalness: 0.85,
+    transparent: true,
+    opacity: 0.75,
+  });
+
+  const w = 22;
+  const h = 9;
+  const d = 16;
+
+  // Main Building Block
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), whiteMat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  campus.add(body);
+
+  // SENAI Blue Top Architectural Parapet
+  const parapet = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, 1.0, d + 0.2), senaiBlueMat);
+  parapet.position.set(0, h - 0.5, 0);
+  campus.add(parapet);
+
+  // SENAI Red Accent Ribbon along top
+  const redBand = new THREE.Mesh(new THREE.BoxGeometry(w + 0.3, 0.25, d + 0.3), senaiRedMat);
+  redBand.position.set(0, h - 1.1, 0);
+  campus.add(redBand);
+
+  // Large Grand Sign: "SENAI - SERVIÇO NACIONAL DE APRENDIZAGEM INDUSTRIAL"
+  const senaiSignTex = createSignTexture('SENAI VILA ESPERANÇA', 'EDUCAÇÃO PROFISSIONAL & TECNOLOGIA', '#1e40af');
+  const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(16, 2.2), new THREE.MeshBasicMaterial({ map: senaiSignTex }));
+  signMesh.position.set(0, h - 2.4, d / 2 + 0.15);
+  campus.add(signMesh);
+
+  // Modern Glass Facade & Robotics Lab Windows (Floor 2)
+  for (let col = -3; col <= 3; col++) {
+    const win = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.8, 0.15), glassMat);
+    win.position.set(col * 2.8, 5.8, d / 2 + 0.1);
+    campus.add(win);
+  }
+
+  // Entrance Portico & Modern Canopy
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 3.2), senaiBlueMat);
+  canopy.position.set(0, 3.8, d / 2 + 1.6);
+  canopy.castShadow = true;
+  campus.add(canopy);
+
+  // Steel Pillars
+  const pL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.8, 8), concreteMat);
+  pL.position.set(-3.6, 1.9, d / 2 + 2.8);
+  campus.add(pL);
+
+  const pR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.8, 8), concreteMat);
+  pR.position.set(3.6, 1.9, d / 2 + 2.8);
+  campus.add(pR);
+
+  // Double Glass Entrance Doors
+  const doors = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.8, 0.1), glassMat);
+  doors.position.set(0, 1.4, d / 2 + 0.05);
+  campus.add(doors);
+
+  // Reception Desk & Demonstration Drop-off Pedestal in front
+  const pedestal = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 0.8, 1.2),
+    new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 })
+  );
+  pedestal.position.set(2.8, 0.4, d / 2 + 2.0);
+  campus.add(pedestal);
+
+  const robotModel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.8, roughness: 0.2 })
+  );
+  robotModel.position.set(2.8, 0.95, d / 2 + 2.0);
+  campus.add(robotModel);
+
+  return campus;
+}
+
 

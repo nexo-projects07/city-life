@@ -7,7 +7,8 @@ import { soundManager } from '../audio/soundManager';
 
 interface CharacterCreatorProps {
   initialConfig?: CharacterConfig;
-  onComplete: (config: CharacterConfig) => void;
+  initialCareer?: 'livre' | 'entregador' | 'motorista' | 'comercio';
+  onComplete: (config: CharacterConfig, career: 'livre' | 'entregador' | 'motorista' | 'comercio') => void;
 }
 
 const SKIN_TONES = [
@@ -50,7 +51,8 @@ const BOTTOM_COLORS = [
   { name: 'Bege Caqui', value: '#a89f91' },
 ];
 
-export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ initialConfig, onComplete }) => {
+export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ initialConfig, initialCareer = 'entregador', onComplete }) => {
+  const [career, setCareer] = useState<'livre' | 'entregador' | 'motorista' | 'comercio'>(initialCareer);
   const [config, setConfig] = useState<CharacterConfig>(
     initialConfig || {
       name: 'Morador da Cidade',
@@ -155,7 +157,7 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ initialConfi
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
     soundManager.playCashSound();
-    onComplete(config);
+    onComplete(config, career);
   };
 
   return (
@@ -327,8 +329,37 @@ export const CharacterCreator: React.FC<CharacterCreatorProps> = ({ initialConfi
                 </div>
               </div>
 
+              {/* Escolha de Carreira Inicial */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-2">
+                  Carreira / Profissão Inicial
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'entregador', label: 'Flash Express', desc: 'Entregador de Encomendas' },
+                    { id: 'motorista', label: 'Urbano Driver', desc: 'Motorista de Aplicativo' },
+                    { id: 'comercio', label: 'Atendente', desc: 'Comércio & Lojas' },
+                    { id: 'livre', label: 'Cidadão Livre', desc: 'Explorador Autônomo' },
+                  ].map((c) => (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => setCareer(c.id as any)}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        career === c.id
+                          ? 'border-amber-400 bg-amber-500/10 text-white shadow-md'
+                          : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="text-xs font-bold text-white">{c.label}</div>
+                      <div className="text-[10px] text-slate-400">{c.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Start Button */}
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   type="submit"
                   className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"

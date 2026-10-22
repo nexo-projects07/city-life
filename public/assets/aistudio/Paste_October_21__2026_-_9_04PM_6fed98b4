@@ -1,0 +1,527 @@
+# CITYLIFE RP — ULTIMATE WORLD LIFE SIMULATOR
+## MEGA PROMPT DE IMPLEMENTAÇÃO, RECONSTRUÇÃO E CORREÇÃO DEFINITIVA
+
+Você é um desenvolvedor sênior especializado em jogos 3D de mundo aberto, simulação de vida, física, inteligência artificial de NPCs, arquitetura de jogos, otimização de navegadores e desenvolvimento com React, TypeScript, Vite e Three.js.
+
+Sua missão é transformar o projeto EXISTENTE CityLife RP em um jogo 3D de mundo aberto muito mais completo, estável, bonito, divertido e funcional, ambientado em uma cidade brasileira fictícia.
+
+A visão combina:
+- GTA: exploração livre, veículos, missões, polícia, perseguições, combate, trabalhos e mundo aberto.
+- The Sims: casa, necessidades, amizades, relacionamentos amorosos, rotina, festas e evolução pessoal.
+- Simuladores de vida real: economia, compras, empregos, transporte público, empresas, propriedades, alimentação e consequências das decisões.
+
+O objetivo é entregar a melhor versão funcional que a arquitetura e o ambiente atual permitirem, priorizando sistemas integrados e jogabilidade real.
+
+**IMPORTANTE: NÃO PROMETA PERFEIÇÃO IMPOSSÍVEL. ANALISE, IMPLEMENTE, TESTE E INFORME HONESTAMENTE O QUE FUNCIONA.**
+
+# 1. INSPECIONE O PROJETO ANTES DE EDITAR
+
+Comece examinando os arquivos atuais, a estrutura do projeto, o framework, as dependências, os componentes, o motor 3D, a lógica de movimento, a câmera, os veículos, as colisões, os NPCs, as interações, os empregos, o celular, o minimapa e o sistema de salvamento.
+
+Determine se o projeto usa React Three Fiber, Three.js diretamente ou outra arquitetura. Preserve a tecnologia existente sempre que possível.
+
+Não crie outro projeto dentro do projeto atual. Não substitua arquivos funcionais por protótipos simplificados. Não elimine recursos existentes para facilitar a implementação. Não duplique sistemas que já funcionam.
+
+Antes de grandes alterações, preserve o estado recuperável por meio do histórico disponível ou de um checkpoint, se possível.
+
+Depois da inspeção, implemente as mudanças diretamente nos arquivos. Não pare apenas em um planejamento, tutorial ou lista de sugestões.
+
+Se houver limites concretos de contexto, execução ou tempo, priorize as correções fundamentais, mantenha o projeto compilável e registre exatamente o que ficou pendente.
+
+# 2. PRIORIDADE MÁXIMA: ESTABILIDADE E BUGS
+
+O estado atual apresenta os seguintes problemas observados:
+
+- Cidade muito vazia, com construções espaçadas e aparência de protótipo.
+- Terreno e grama visualmente bugados.
+- Personagem com aparência de estar flutuando.
+- Movimentação a pé lenta e WASD invertido.
+- Avisos de interação aparecem, mas a tecla E frequentemente não funciona.
+- Compras e serviços não concluem seus fluxos.
+- Corridas por aplicativo não apresentam passageiros.
+- Carros de NPCs seguem reto e desaparecem.
+- Ausência ou inconsistência de colisões entre veículos e personagens.
+- Veículos ficam presos no Parque Central.
+- Não é possível embarcar corretamente em ônibus nas paradas.
+- Golpes e combate não respondem adequadamente.
+- NPCs possuem poucas falas e diálogos de baixa qualidade.
+- O tempo passa rápido demais.
+- O jogo pode piscar, travar ou apresentar falhas de renderização.
+- O mapa, as rotas, os interiores e os estabelecimentos precisam ser melhorados.
+
+Investigue as causas reais antes de aplicar correções. Não esconda erros com mensagens falsas ou apenas altere a aparência da interface.
+
+## Movimento a pé
+
+Corrija definitivamente a orientação dos controles em relação à câmera:
+
+- W: para a frente.
+- S: para trás.
+- A: para a esquerda.
+- D: para a direita.
+- Shift: correr.
+- Espaço: pular, se já suportado pelo sistema.
+
+O movimento deve ser relativo à orientação horizontal da câmera, sem inversão lateral. Normalize a movimentação diagonal. Aumente a velocidade de caminhada para um ritmo natural e implemente corrida com aceleração e desaceleração suaves.
+
+**NÃO ALTERE OS CONTROLES DO CARRO QUE JÁ FUNCIONAM CORRETAMENTE.** Mantenha sistemas de entrada separados para personagem, veículo, menus e combate.
+
+O personagem precisa permanecer apoiado no chão, com gravidade, detecção de terreno, colisões, animações e transições coerentes. Elimine flutuação, deslizamento exagerado, atravessamento de objetos e mudanças bruscas de posição.
+
+## Renderização e desempenho
+
+Investigue piscadas, erros de WebGL, sombras instáveis, superfícies sobrepostas, texturas esticadas, loops duplicados, câmeras incorretas e atualizações excessivas.
+
+Garanta que a cena 3D seja criada uma única vez, que recursos sejam liberados corretamente e que componentes não reiniciem desnecessariamente o mundo.
+
+Use otimizações compatíveis com o motor existente: geometria compartilhada, instanciamento quando adequado, níveis de detalhe simples, limites de simulação por distância e controle de sombras.
+
+Não substitua o jogo 3D por uma tela 2D como solução principal. Se o ambiente não suportar determinada funcionalidade, mostre um erro identificável e mantenha o restante do jogo utilizável.
+
+# 3. UMA CIDADE BRASILEIRA DENSA E EXPLORÁVEL
+
+Expanda a cidade existente, criando uma identidade visual própria e muito mais variedade.
+
+Inclua:
+- Centro com prédios comerciais e residenciais.
+- Bairros de casas e apartamentos.
+- Periferia com ruas, residências, pequenos comércios e pontos de encontro.
+- Praia, calçadão, quiosques e região turística.
+- Zona industrial, depósitos e galpões.
+- Shopping com lojas, praça de alimentação e corredores.
+- Supermercados, padarias, restaurantes e lanchonetes.
+- Academias, salões, cinemas e espaços de lazer.
+- Hospitais, delegacias, oficinas, postos e concessionárias.
+- Imobiliárias, escritórios, empresas e locais de trabalho.
+- Parques, praças, estacionamentos e áreas para eventos.
+- Avenidas, ruas secundárias, becos, cruzamentos, rotatórias e faixas de pedestres.
+
+Adicione fachadas variadas, vitrines, letreiros fictícios, postes, árvores, mobiliário urbano, sinalização brasileira e iluminação pública.
+
+Corrija a aparência da grama, das ruas, das calçadas, dos materiais e das texturas. Elimine grandes espaços vazios sem propósito. Evite edifícios repetidos de forma excessiva e casas que parecem cópias idênticas.
+
+Crie limites físicos do mundo e conecte todas as ruas a trajetórias válidas. Não deixe estradas terminarem em vazio nem permita que carros continuem andando para sempre fora do mapa.
+
+Construa interiores navegáveis para os estabelecimentos prioritários. Onde um interior não existir, não apresente uma falsa interação de entrada.
+
+# 4. TRÂNSITO INTELIGENTE, COLISÕES E ROTAS
+
+Implemente um sistema de trânsito integrado com carros, motos, ônibus e veículos estacionados.
+
+Os veículos precisam:
+- Seguir rotas conectadas e válidas.
+- Respeitar o sentido de cada pista.
+- Circular corretamente em mão e contramão.
+- Frear antes de obstáculos e veículos parados.
+- Manter distâncias razoáveis.
+- Fazer curvas e atravessar cruzamentos.
+- Respeitar semáforos quando aplicável.
+- Reagir a colisões.
+- Evitar edifícios, calçadas indevidas e áreas bloqueadas.
+- Permanecer dentro dos limites do mapa.
+- Não desaparecer simplesmente ao chegar ao final de uma linha reta.
+- Não ficar presos indefinidamente no Parque Central.
+
+Implemente colisões coerentes entre carros, motos, NPCs, paredes e objetos. As colisões devem causar frenagem, bloqueio ou reação adequada, sem explosões de velocidade ou travamentos.
+
+Use colisores proporcionais aos objetos. Separe a colisão física da distância de interação para que o personagem consiga aproximar-se de portas e fachadas.
+
+Organize as rotas por vias e conexões. Se um veículo ficar bloqueado durante muito tempo, implemente recuperação controlada que o reposicione em uma via válida, sem teletransporte visível na frente do jogador.
+
+Otimize os veículos distantes, mantendo a cidade viva sem simular toda a física em máxima precisão o tempo inteiro.
+
+# 5. NPCs COM VIDA PRÓPRIA
+
+Crie NPCs variados, com nomes fictícios, aparências, personalidades, profissões e rotinas.
+
+Os NPCs devem poder:
+- Caminhar nas calçadas.
+- Atravessar nas faixas.
+- Desviar de obstáculos e outros personagens.
+- Trabalhar e frequentar estabelecimentos.
+- Comprar alimentos e roupas quando apropriado.
+- Conversar e formar relações.
+- Esperar ônibus.
+- Entrar e sair de veículos.
+- Reagir a acidentes, brigas, crimes e eventos.
+- Reconhecer o jogador e personagens recorrentes.
+
+Implemente navegação consistente, evitando que NPCs atravessem paredes ou fiquem presos em um mesmo ponto.
+
+Melhore significativamente os diálogos. Crie falas naturais e variadas, contextualizadas pela situação, local, profissão, personalidade e relacionamento. Ofereça opções de resposta quando fizer sentido.
+
+Evite repetir a mesma frase para todos os personagens. Use conjuntos de diálogos originais, estados sociais e condições de contexto, sem depender de uma API de IA paga.
+
+NPCs importantes devem conservar relações, acontecimentos e estados relevantes. NPCs distantes podem usar rotinas simplificadas para melhorar o desempenho.
+
+# 6. SISTEMA CENTRAL DE INTERAÇÃO
+
+Corrija a tecla E e centralize as interações em um único sistema coerente.
+
+Os objetos interativos devem registrar sua ação, alcance, requisitos e resultado. O jogo deve selecionar a interação válida mais próxima, considerando a direção e a distância do jogador.
+
+Ações esperadas:
+- Entrar e sair de estabelecimentos.
+- Comprar produtos.
+- Conversar com NPCs.
+- Usar cama, chuveiro e guarda-roupa.
+- Comer e cozinhar quando disponível.
+- Trabalhar.
+- Aceitar e concluir tarefas.
+- Pedir comida.
+- Embarcar em ônibus.
+- Entrar e sair de veículos.
+- Usar oficinas, postos e serviços.
+- Interagir com portas, computadores e móveis.
+
+Mostre um aviso claro com a ação disponível. Ao apertar E, execute a ação real, valide seus requisitos e atualize o estado do jogo.
+
+Se a ação não puder ser realizada, informe o motivo. Evite disparos repetidos, ações duplicadas, interação através de paredes e conflitos com campos de texto.
+
+A tecla E não deve ser apenas um aviso visual. Ela deve ser testada em todos os principais fluxos.
+
+# 7. CASA PRÓPRIA E VIDA DOMÉSTICA
+
+O protagonista precisa ter uma residência inicial claramente definida, identificada no mapa e acessível pelo GPS.
+
+A casa deve corresponder a um endereço específico, não ser apenas uma das muitas construções indistinguíveis.
+
+Crie uma casa com entrada funcional e interior navegável, contendo sala, quarto, cozinha, banheiro e móveis compatíveis com o espaço.
+
+Implemente:
+- Cama para dormir e recuperar energia.
+- Chuveiro para melhorar a higiene.
+- Cozinha para preparar alimentos, se possível.
+- Guarda-roupa para trocar roupas.
+- Armazenamento de itens.
+- Móveis utilizáveis.
+- Local para salvar ou ponto de retorno quando apropriado.
+- Garagem ou vaga quando disponível.
+
+Permita comprar, alugar ou desbloquear novas residências, com preços e condições claras. Registre propriedades e seus acessos.
+
+As transições entre interior e exterior devem ser consistentes. Não permita que o personagem atravesse portas fechadas ou apareça dentro de paredes.
+
+# 8. LOJAS, SHOPPING, COMPRAS E PEDIDOS
+
+Implemente estabelecimentos funcionais com catálogos de produtos e preços.
+
+Inclua:
+- Supermercado.
+- Padaria.
+- Lanchonetes.
+- Restaurantes.
+- Shopping.
+- Lojas de roupas.
+- Salão e barbearia.
+- Academias.
+- Oficinas.
+- Postos de combustível.
+- Concessionárias.
+- Imobiliárias.
+- Outros comércios adequados à cidade.
+
+Uma compra precisa verificar o saldo, descontar o valor correto, entregar o produto e atualizar o inventário ou o estado correspondente.
+
+Uma compra sem dinheiro deve ser recusada com explicação. Não pode haver produtos gratuitos acidentais nem cobranças duplicadas.
+
+Permita pedir comida pelo celular ou comprar presencialmente. Cada pedido deve possuir itens, preço, estado e forma de entrega definidos. O jogador deve conseguir receber e consumir o alimento.
+
+A entrega por NPC precisa ter coletor, destino e conclusão válidos. Se a infraestrutura de entrega não estiver disponível, implemente retirada funcional no balcão, sem fingir que um entregador apareceu.
+
+# 9. PERSONAGEM, ROUPAS E INVENTÁRIO
+
+Preserve a criação de personagem existente.
+
+Implemente inventário funcional para alimentos, roupas, acessórios e objetos relevantes. Permita equipar, usar, guardar e remover itens, atualizando o estado real do jogo.
+
+Permita trocar roupas sempre que o jogador desejar por meio do menu de aparência e de interações em locais apropriados.
+
+Implemente variações de cabelo e aparência quando os modelos disponíveis permitirem. Não exiba opções que não possam ser aplicadas.
+
+As compras de roupas devem modificar a aparência ou desbloquear itens equipáveis. O inventário deve exibir quantidades e evitar duplicações.
+
+# 10. NECESSIDADES E ROTINA
+
+Implemente fome, energia, higiene e sono com indicadores claros e mudanças graduais.
+
+As necessidades devem diminuir lentamente e de forma equilibrada. Comer, dormir, tomar banho e realizar determinadas atividades deve produzir efeitos consistentes.
+
+Integre as necessidades aos trabalhos, relacionamentos e horários. Não permita que o personagem fique exausto em poucos minutos por causa de um relógio acelerado.
+
+O sistema deve enriquecer a simulação sem impedir que o jogador explore a cidade e conclua missões.
+
+# 11. CICLO DIA/NOITE E CLIMA
+
+Crie um relógio central compartilhado pelo mundo inteiro.
+
+O tempo atual passa rápido demais. Ajuste a duração do dia para permitir exploração, trabalhos, compras, encontros e missões sem que a noite chegue rapidamente demais.
+
+Implemente:
+- Amanhecer gradual.
+- Dia com iluminação natural.
+- Entardecer.
+- Noite escura com postes e luzes urbanas.
+- Transições suaves entre períodos.
+- Chuva e efeitos climáticos otimizados.
+- Rotinas de NPCs ligadas ao horário.
+- Horários de funcionamento para determinados locais.
+- Integração com sono, festas, trabalhos e eventos.
+
+O tempo deve avançar de forma consistente, sem temporizadores duplicados ou saltos inesperados. Dormir pode avançar o relógio de forma controlada.
+
+# 12. CELULAR, CONTATOS, MENSAGENS E GPS
+
+Mantenha e melhore o celular atual.
+
+Inclua contatos, mensagens, notificações, mapa, GPS, saldo, missões, oportunidades de emprego, solicitações de transporte e compromissos sociais.
+
+Permita que mensagens iniciem missões, convidem o jogador para encontros ou informem oportunidades.
+
+Melhore o mapa para exibir ruas, bairros, casa, shopping, lojas, empregos, paradas, veículos relevantes e objetivos ativos.
+
+O GPS deve marcar destinos reais e, quando possível, calcular uma rota pelas vias existentes. Não aponte para lugares inexistentes nem use caminhos que atravessam prédios.
+
+Mantenha os controles do celular compatíveis com os controles atuais do jogo. Não permita que o personagem ande ou ataque enquanto o jogador digita uma mensagem.
+
+# 13. UBER, TÁXI E CORRIDAS
+
+Reformule completamente o transporte por aplicativo. O sistema atual pode ser ativado sem que apareça qualquer passageiro.
+
+Implemente um fluxo completo:
+1. Abrir o celular e ativar o serviço.
+2. Receber uma solicitação.
+3. Exibir o local de coleta e o destino no mapa.
+4. Chegar ao local de coleta.
+5. Fazer o passageiro aparecer em um ponto navegável.
+6. Permitir que ele entre no veículo por animação ou transição visual coerente.
+7. Dirigir até o destino.
+8. Permitir que o passageiro desembarque.
+9. Concluir a corrida.
+10. Registrar pagamento, avaliação e estatísticas.
+
+O passageiro precisa existir no mundo e ter posição válida. Não deve surgir dentro de um carro, parede ou local inacessível.
+
+A solicitação precisa possuir estados definidos, evitando pagamento duplicado, conclusão sem passageiro ou corrida presa indefinidamente.
+
+Crie também trabalhos de táxi e outras modalidades de transporte fictício.
+
+# 14. ÔNIBUS E TRANSPORTE PÚBLICO
+
+Os ônibus precisam seguir rotas definidas e parar nos pontos corretos.
+
+Implemente linhas, paradas, destino, passageiros, portas e interação de embarque. Corrija a falha que impede entrar no ônibus quando ele está na parada.
+
+O jogador deve conseguir embarcar e desembarcar por transição coerente, com passagem quando aplicável.
+
+Se dirigir ônibus como profissão, deve cumprir uma rota, parar nos pontos e receber pagamento após o serviço.
+
+Não permita embarque em ônibus distantes, em movimento incompatível ou fora da parada.
+
+# 15. EMPREGOS E ENTREGAS
+
+Reformule o sistema de entregas e os empregos.
+
+Cada tarefa deve possuir:
+- Início.
+- Objetivo.
+- Ponto de coleta, se necessário.
+- Destino.
+- Marcador de GPS.
+- Condições de conclusão.
+- Recompensa.
+- Estado persistente.
+
+Inclua entregador, motorista, mecânico, funcionário de loja, trabalhador de depósito e outras profissões compatíveis.
+
+Nas entregas, o jogador precisa buscar um pedido ou pacote, levá-lo ao destino e confirmar a entrega. A tarefa só pode pagar depois da conclusão válida.
+
+Evite objetivos fora do mapa, pedidos duplicados, recompensas repetidas e missões impossíveis de concluir.
+
+Crie progressão profissional com habilidades, melhores oportunidades e remuneração coerente.
+
+# 16. VEÍCULOS, GARAGEM E PERSONALIZAÇÃO
+
+Preserve os veículos e os controles funcionais atuais.
+
+Permita comprar carros e motos, registrar propriedade, estacionar, guardar na garagem, abastecer, reparar e personalizar os veículos.
+
+As compras devem alterar o saldo e registrar o veículo. Reparos e combustível devem alterar o estado correspondente.
+
+Implemente animações ou transições coerentes para entrar e sair. O personagem deve sentar corretamente e não aparecer flutuando ou dentro do teto.
+
+Evite perda de veículos comprados ao recarregar o jogo. Não permita que veículos de propriedade do jogador sejam duplicados por falhas de salvamento.
+
+# 17. AMIZADES, ROMANCES E RELACIONAMENTOS
+
+Crie um sistema social inspirado em simuladores de vida, com personagens adultos fictícios para relacionamentos amorosos.
+
+O jogador deve conhecer pessoas, conversar, formar amizades, desenvolver romances, convidar NPCs para encontros e participar de atividades sociais.
+
+Implemente:
+- Afinidade.
+- Confiança.
+- Amizade.
+- Interesse romântico.
+- Convites.
+- Encontros.
+- Mensagens.
+- Festas.
+- Reações a escolhas.
+- Evolução das relações ao longo do tempo.
+- Desbloqueio de diálogos e eventos conforme a afinidade.
+
+As relações devem depender das interações e das decisões do jogador. NPCs importantes devem lembrar acontecimentos relevantes e manter seus estados sociais.
+
+Evite relacionamentos que mudam sem motivo, diálogos genéricos repetidos ou sistemas que exibem corações sem modificar os dados.
+
+# 18. FESTAS E VIDA NOTURNA
+
+Crie locais de lazer, boates fictícias, bares, shows, encontros e festas.
+
+Os eventos devem possuir horário, local e personagens. Permita receber convites pelo celular, chegar ao destino, conversar e desenvolver relacionamentos.
+
+Integre as festas ao relógio, ao mapa, às necessidades e à agenda pessoal.
+
+# 19. EMPRESAS E ECONOMIA
+
+Permita abrir, comprar e administrar empresas quando viável.
+
+Implemente capital, receita, despesas, estoque, funcionários e lucro, conforme o tipo de negócio.
+
+A economia deve integrar salários, compras, propriedades, combustível, veículos e empresas. Registre transações e evite lucro infinito, descontos duplicados e compras sem saldo.
+
+# 20. MODO HISTÓRIA E COPROTAGONISTA
+
+Crie uma história original com protagonista personalizável e coprotagonista recorrente.
+
+Inclua missões principais, secundárias, trabalhos, exploração livre, diálogos, decisões e consequências.
+
+O coprotagonista deve participar de missões, conversar e acompanhar o jogador quando necessário, usando navegação compatível com o mapa.
+
+As missões devem possuir condições de início, objetivos, conclusão, falha e recompensas. Evite personagens que desaparecem sem explicação ou missões que não podem ser concluídas.
+
+Crie progressão persistente, conquistas e finais diferentes conforme as escolhas e objetivos alcançados.
+
+# 21. POLÍCIA, COMBATE E EVENTOS
+
+Implemente um sistema de procurado com níveis de alerta, reação policial, perseguições, multas e consequências no mundo fictício.
+
+Corrija os comandos de combate. Implemente socos e chutes com animações, alcance, detecção de acertos, reações e barra de vida quando apropriado.
+
+Se o jogo já tiver armas fictícias, preserve e corrija seus controles e estados. Não adicione botões decorativos sem funcionalidade.
+
+Inclua eventos aleatórios coerentes: acidentes, pedidos de ajuda, oportunidades de trabalho, encontros sociais e acontecimentos urbanos.
+
+Evite eventos repetidos em sequência, personagens que não podem ser alcançados e missões que ficam travadas.
+
+# 22. RÁDIO E ÁUDIO
+
+Implemente rádio veicular com estações fictícias, nomes originais, notícias inventadas da cidade e músicas originais ou devidamente autorizadas.
+
+Permita trocar estações, pausar e controlar o volume. Evite múltiplos áudios simultâneos e sons inesperados.
+
+Não dependa de serviços pagos ou músicas comerciais protegidas.
+
+# 23. HUD E INTERFACE
+
+Melhore o HUD, o minimapa, os indicadores de necessidades, o dinheiro, o relógio, o celular, o inventário e os menus.
+
+A interface precisa ser legível, consistente e responsiva. Os comandos devem funcionar corretamente a pé, dirigindo, conversando e usando o celular.
+
+Mostre feedback real ao comprar, receber itens, iniciar um emprego, aceitar uma corrida, embarcar, concluir missões ou alterar relacionamentos.
+
+Não anuncie uma função como concluída se ela não tiver comportamento real.
+
+# 24. SALVAMENTO E PROGRESSÃO
+
+Implemente ou corrija o salvamento usando a tecnologia disponível no projeto.
+
+Persista personagem, aparência, dinheiro, inventário, necessidades, propriedades, veículos, empresas, missões, conquistas, contatos, mensagens e relacionamentos.
+
+Valide os dados ao carregar. Evite apagar todo o progresso por causa de um registro inválido.
+
+Permita continuar a carreira e iniciar uma nova sem reiniciar silenciosamente o progresso existente.
+
+Não afirme que existe sincronização em nuvem ou multiplayer se a infraestrutura não estiver implementada.
+
+# 25. ARQUITETURA E INTEGRAÇÃO
+
+Todos os sistemas devem compartilhar dados consistentes.
+
+Use uma fonte central de estado do jogo para saldo, inventário, necessidades, horário, missões, propriedades e relações. Eventos como comprar comida devem alterar o saldo e o inventário; consumir comida deve atualizar as necessidades; concluir uma corrida deve alterar o saldo e as estatísticas.
+
+Evite criar várias versões incompatíveis do mesmo dado.
+
+Mantenha sistemas modulares, com interfaces claras entre movimento, mundo, veículos, NPCs, interações, economia, missões e salvamento.
+
+Preserve a tecnologia atual do projeto quando adequada. Não adicione dependências desnecessárias, APIs pagas ou recursos externos obrigatórios.
+
+Priorize single-player completo. Não finja que existe multiplayer funcional sem servidores e sincronização reais.
+
+# 26. TESTES E CRITÉRIOS DE ACEITAÇÃO
+
+Após implementar, execute a compilação de produção e as verificações disponíveis. Corrija erros de compilação, TypeScript e execução.
+
+Teste:
+1. O jogo abre sem tela preta.
+2. A criação e o carregamento do personagem funcionam.
+3. W, A, S, D funcionam corretamente a pé.
+4. Shift ativa a corrida.
+5. Os controles do carro permanecem inalterados.
+6. O personagem não flutua nem atravessa o chão.
+7. As colisões funcionam.
+8. Os carros seguem rotas e não desaparecem do mapa.
+9. Os veículos não ficam presos indefinidamente no Parque Central.
+10. A tecla E funciona nas lojas, portas, NPCs e móveis.
+11. Comprar um produto altera saldo e inventário.
+12. A casa inicial é identificável, acessível e utilizável.
+13. Cama, chuveiro e guarda-roupa funcionam.
+14. Pedidos de comida podem ser concluídos.
+15. Corridas por aplicativo têm coleta, passageiro, destino e pagamento.
+16. O jogador consegue embarcar e desembarcar em ônibus.
+17. Entregas possuem coleta, destino e recompensa válidos.
+18. GPS e minimapa mostram locais corretos.
+19. Os NPCs dialogam e reagem às interações.
+20. Amizades e relacionamentos mudam de maneira consistente.
+21. O ciclo dia/noite é gradual.
+22. O jogo salva e carrega o progresso.
+23. Não ocorrem erros graves, piscadas ou travamentos prolongados.
+
+Não declare testes que não executou. Diferencie verificações automatizadas das verificações manuais que ainda precisam ser feitas.
+
+# 27. ORDEM DE EXECUÇÃO
+
+Priorize nesta ordem, sem descartar as funcionalidades posteriores:
+
+FASE A — recuperar estabilidade, renderização, chão, movimento, câmera, colisões e controles.
+
+FASE B — corrigir a tecla E, a casa inicial, as lojas, compras, inventário e salvamento.
+
+FASE C — integrar economia, necessidades, trabalhos, entregas, corridas, ônibus e veículos.
+
+FASE D — expandir a cidade, trânsito, NPCs, GPS, celular, clima e ciclo dia/noite.
+
+FASE E — implementar relações, festas, empresas, história, coprotagonista, polícia, combate, eventos e finais.
+
+Execute o máximo possível nesta atualização, mas não sacrifique a compilação ou a estabilidade para aparentar que todos os recursos foram concluídos.
+
+# RESULTADO ESPERADO
+
+Entregue uma versão muito mais completa do CityLife RP, com cidade brasileira densa, mundo navegável, NPCs vivos, trânsito coerente, física estável, casa própria, compras reais, shopping, empregos, entregas, transporte por aplicativo, ônibus, amizades, romances, festas, missões, empresas e progressão persistente.
+
+O jogo deve continuar sendo um projeto de navegador, com os recursos 3D existentes preservados e melhorados.
+
+Não entregue somente uma proposta. Modifique os arquivos reais do projeto.
+
+Não recrie tudo do zero sem necessidade. Não apague o que funciona. Não altere os controles corretos do carro. Corrija o WASD invertido a pé. Não deixe a tecla E sem efeito. Não simule compras, passageiros, missões ou salvamentos que não acontecem de verdade.
+
+Ao terminar, informe:
+- Quais arquivos foram modificados.
+- Quais sistemas foram realmente implementados.
+- Quais bugs foram corrigidos.
+- Quais testes foram executados.
+- Quais limitações permanecem.
+- Como abrir e testar o preview.
+
+Se o projeto estiver incompleto, mantenha-o recuperável e compilável. A honestidade técnica e a preservação do trabalho existente são obrigatórias.

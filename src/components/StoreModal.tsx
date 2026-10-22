@@ -1,6 +1,20 @@
 import React, { useState } from 'react';
 import { StoreCategory, StoreItem, CharacterConfig } from '../types';
-import { X, ShoppingBag, Coffee, Wrench, Sparkles, Check, Car, Apple, Zap } from 'lucide-react';
+import {
+  X,
+  ShoppingBag,
+  Coffee,
+  Wrench,
+  Sparkles,
+  Check,
+  Car,
+  Apple,
+  Zap,
+  Building,
+  Heart,
+  Fuel,
+  ShieldAlert,
+} from 'lucide-react';
 import { soundManager } from '../audio/soundManager';
 
 interface StoreModalProps {
@@ -19,18 +33,40 @@ interface StoreModalProps {
 }
 
 const PADARIA_ITEMS: StoreItem[] = [
-  { id: 'pao_de_queijo', name: 'Pão de Queijo Mineiro', price: 8, description: 'Quentinho e macio, queijo canastra legítimo.', category: 'padaria', effectType: 'energy', effectValue: 25 },
-  { id: 'coxinha', name: 'Coxinha com Catupiry', price: 10, description: 'Crocante por fora e cremosa por dentro.', category: 'padaria', effectType: 'energy', effectValue: 35 },
-  { id: 'cafe_pingado', name: 'Café Pingado no Copo', price: 4, description: 'Café forte brasileiro com toque de leite quente.', category: 'padaria', effectType: 'energy', effectValue: 15 },
-  { id: 'guarana', name: 'Guaraná Gelado (Lata)', price: 6, description: 'Bebida de guaraná da Amazônia.', category: 'padaria', effectType: 'energy', effectValue: 20 },
+  { id: 'pao_de_queijo', name: 'Pão de Queijo Mineiro', price: 8, description: 'Quentinho e macio, queijo canastra legítimo.', category: 'padaria', effectType: 'hunger', effectValue: 25 },
+  { id: 'coxinha', name: 'Coxinha com Catupiry', price: 10, description: 'Crocante por fora e cremosa por dentro.', category: 'padaria', effectType: 'hunger', effectValue: 35 },
+  { id: 'cafe_pingado', name: 'Café Pingado no Copo', price: 4, description: 'Café forte brasileiro com toque de leite quente.', category: 'padaria', effectType: 'energy', effectValue: 20 },
+  { id: 'guarana', name: 'Guaraná Gelado (Lata)', price: 6, description: 'Bebida de guaraná da Amazônia.', category: 'padaria', effectType: 'energy', effectValue: 15 },
 ];
 
 const MERCADO_ITEMS: StoreItem[] = [
-  { id: 'agua_mineral', name: 'Água Mineral da Serra (500ml)', price: 4, description: 'Puríssima e gelada, mata a sede e reidrata.', category: 'mercado', effectType: 'energy', effectValue: 18 },
-  { id: 'maca', name: 'Maçã Vermelha Fresca', price: 3, description: 'Fruta fresca colhida no interior.', category: 'mercado', effectType: 'energy', effectValue: 12 },
-  { id: 'barra_cereal', name: 'Barra de Cereal com Castanhas', price: 6, description: 'Energia rápida e prática para entregadores.', category: 'mercado', effectType: 'energy', effectValue: 25 },
-  { id: 'sanduiche', name: 'Sanduíche Natural de Frango', price: 14, description: 'Pão integral com peito de frango desfiado.', category: 'mercado', effectType: 'energy', effectValue: 45 },
-  { id: 'energetico', name: 'Energético Nitro Bull (Lata)', price: 12, description: 'Dose potente de cafeína e taurina.', category: 'mercado', effectType: 'energy', effectValue: 55 },
+  { id: 'agua_mineral', name: 'Água Mineral da Serra (500ml)', price: 4, description: 'Puríssima e gelada, mata a sede e reidrata.', category: 'mercado', effectType: 'energy', effectValue: 20 },
+  { id: 'maca', name: 'Maçã Vermelha Fresca', price: 3, description: 'Fruta fresca colhida no interior.', category: 'mercado', effectType: 'hunger', effectValue: 15 },
+  { id: 'barra_cereal', name: 'Barra de Cereal com Castanhas', price: 6, description: 'Energia rápida e prática para entregadores.', category: 'mercado', effectType: 'energy', effectValue: 30 },
+  { id: 'sanduiche', name: 'Sanduíche Natural de Frango', price: 14, description: 'Pão integral com peito de frango desfiado.', category: 'mercado', effectType: 'hunger', effectValue: 50 },
+  { id: 'energetico', name: 'Energético Nitro Bull (Lata)', price: 12, description: 'Dose potente de cafeína e taurina.', category: 'mercado', effectType: 'energy', effectValue: 60 },
+];
+
+const SHOPPING_ITEMS: StoreItem[] = [
+  { id: 'shop_combo', name: 'Combo Praça de Alimentação', price: 38, description: 'Hambúrguer duplo artesanal, batata rústica e refrigerante.', category: 'shopping', effectType: 'hunger', effectValue: 75 },
+  { id: 'shop_smartwatch', name: 'Smartwatch Digital Pro', price: 320, description: 'Relógio moderno com GPS integrado e contador de passos.', category: 'shopping', effectType: 'inventory' },
+  { id: 'shop_sneakers', name: 'Tênis Streetwear Carioca', price: 210, description: 'Amortecimento esportivo ideal para caminhadas longas.', category: 'shopping', effectType: 'inventory' },
+  { id: 'shop_headphone', name: 'Fone Bluetooth Noise Cancelling', price: 175, description: 'Áudio imersivo sem fio para ouvir música pela cidade.', category: 'shopping', effectType: 'energy', effectValue: 25 },
+  { id: 'shop_jaqueta', name: 'Jaqueta Bomber Urbana', price: 280, description: 'Tecido premium com corte moderno da coleção de inverno.', category: 'shopping', effectType: 'inventory' },
+];
+
+const HOSPITAL_ITEMS: StoreItem[] = [
+  { id: 'hosp_curativo', name: 'Curativo Rápido e Analgésico', price: 15, description: 'Alívio imediato para pequenos machucados.', category: 'hospital', effectType: 'health', effectValue: 25 },
+  { id: 'hosp_kit', name: 'Kit de Primeiros Socorros', price: 45, description: 'Bandagens, esparadrapo, iodo e gaze esterilizada.', category: 'hospital', effectType: 'health', effectValue: 60 },
+  { id: 'hosp_vitamina', name: 'Complexo Vitamínico Revitalizante', price: 28, description: 'Restaura a imunidade e combate o cansaço físico.', category: 'hospital', effectType: 'energy', effectValue: 50 },
+  { id: 'hosp_consulta', name: 'Atendimento Médico Completo', price: 120, description: 'Check-up com médico plantonista. Recupera 100% de Vida.', category: 'hospital', effectType: 'health', effectValue: 100 },
+];
+
+const POSTO_ITEMS: StoreItem[] = [
+  { id: 'posto_gasolina', name: 'Tanque Cheio de Gasolina Aditivada', price: 85, description: 'Combustível de alta performance com aditivos de limpeza.', category: 'posto', effectType: 'car_repair' },
+  { id: 'posto_cafe', name: 'Café Expresso da Conveniência', price: 6, description: 'Café forte e quente para revigorar na estrada.', category: 'posto', effectType: 'energy', effectValue: 25 },
+  { id: 'posto_agua', name: 'Água Mineral Gelada com Gás', price: 5, description: 'Refrescante garrafa de 500ml.', category: 'posto', effectType: 'energy', effectValue: 15 },
+  { id: 'posto_palheta', name: 'Kit Palhetas Limpadoras e Cera', price: 35, description: 'Manutenção rápida dos vidros e brilho da lataria.', category: 'posto', effectType: 'car_repair' },
 ];
 
 const CAR_PAINTS = [
@@ -80,9 +116,15 @@ export const StoreModal: React.FC<StoreModalProps> = ({
   const getStoreTitle = () => {
     switch (category) {
       case 'padaria':
-        return { name: 'Padaria Pão Dourado', desc: 'Salgados, café e lanches tradicionais para recarregar sua energia' };
+        return { name: 'Padaria Pão Dourado', desc: 'Salgados, café e lanches tradicionais para recarregar sua energia e fome' };
       case 'mercado':
         return { name: 'Mercadinho Vila Nova', desc: 'Bebidas geladas, energéticos e alimentos rápidos' };
+      case 'shopping':
+        return { name: 'Shopping Center Metrópole', desc: 'Lojas de departamento, eletrônicos e praça de alimentação' };
+      case 'hospital':
+        return { name: 'Hospital & Farmácia Central', desc: 'Atendimento médico, curativos e primeiros socorros' };
+      case 'posto':
+        return { name: 'Posto de Combustível Brasil', desc: 'Abastecimento de veículos e conveniência BR' };
       case 'oficina':
         return { name: 'Oficina Mecânica Auto Car', desc: 'Pinturas esportivas, revisões e kit de tuning' };
       case 'concessionaria':
@@ -100,10 +142,11 @@ export const StoreModal: React.FC<StoreModalProps> = ({
     const success = onBuyItem(item);
     if (success) {
       soundManager.playCashSound();
-      setPurchasedMessage(`Você comprou ${item.name}! (+${item.effectValue}% Energia)`);
+      const effectDesc = item.effectType ? `(+${item.effectValue}% ${item.effectType.toUpperCase()})` : '';
+      setPurchasedMessage(`Você comprou ${item.name}! ${effectDesc}`);
       setTimeout(() => setPurchasedMessage(null), 2500);
     } else {
-      setPurchasedMessage('Saldo insuficiente! Faça entregas na Flash Express.');
+      setPurchasedMessage('Saldo insuficiente! Trabalhe como entregador ou motorista.');
       setTimeout(() => setPurchasedMessage(null), 2500);
     }
   };
@@ -160,19 +203,14 @@ export const StoreModal: React.FC<StoreModalProps> = ({
   };
 
   const handleDealershipBuy = (model: typeof CAR_MODELS[number]) => {
-    if (carModel === model.id) {
-      setPurchasedMessage(`Você já possui este modelo (${model.name})!`);
-      setTimeout(() => setPurchasedMessage(null), 2500);
-      return;
-    }
     if (money < model.price) {
-      setPurchasedMessage(`Saldo insuficiente! Custa R$ ${model.price}`);
+      setPurchasedMessage(`Saldo insuficiente! O modelo ${model.name} custa R$ ${model.price}`);
       setTimeout(() => setPurchasedMessage(null), 2500);
       return;
     }
     const success = onBuyItem({
       id: `car_model_${model.id}`,
-      name: model.name,
+      name: `Veículo ${model.name}`,
       price: model.price,
       description: model.desc,
       category: 'concessionaria',
@@ -180,7 +218,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
       effectValue: model.id,
     });
     if (success) {
-      onBuyCar?.(model.id, model.price);
+      onBuyCar?.(model.id as 'popular' | 'gt' | 'suv', model.price);
       soundManager.playCashSound();
       setPurchasedMessage(`Parabéns! Você adquiriu o ${model.name}!`);
       setTimeout(() => setPurchasedMessage(null), 2500);
@@ -188,17 +226,17 @@ export const StoreModal: React.FC<StoreModalProps> = ({
   };
 
   const handleApplyClothes = () => {
-    const cost = 40;
-    if (money < cost) {
-      setPurchasedMessage(`Saldo insuficiente! Custa R$ ${cost}`);
+    const price = 40;
+    if (money < price) {
+      setPurchasedMessage(`Saldo insuficiente! Mudar as roupas custa R$ ${price}`);
       setTimeout(() => setPurchasedMessage(null), 2500);
       return;
     }
     const success = onBuyItem({
-      id: 'custom_clothes',
-      name: 'Novo Visual de Roupas',
-      price: cost,
-      description: 'Camiseta e calça novas',
+      id: 'clothes_purchase',
+      name: 'Aparência & Roupas Novas',
+      price,
+      description: 'Camiseta e calça novas da boutique',
       category: 'roupas',
     });
     if (success) {
@@ -207,32 +245,35 @@ export const StoreModal: React.FC<StoreModalProps> = ({
         bottomColor: selectedBottomColor,
       });
       soundManager.playCashSound();
-      setPurchasedMessage('Novo visual aplicado com sucesso!');
+      setPurchasedMessage('Visual atualizado com sucesso!');
       setTimeout(() => setPurchasedMessage(null), 2500);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
+      <div className="w-full max-w-lg bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden text-white flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/60">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
               {category === 'padaria' && <Coffee className="w-5 h-5" />}
-              {category === 'mercado' && <Apple className="w-5 h-5 text-emerald-400" />}
+              {category === 'mercado' && <Apple className="w-5 h-5" />}
+              {category === 'shopping' && <Building className="w-5 h-5" />}
+              {category === 'hospital' && <Heart className="w-5 h-5 text-red-400" />}
+              {category === 'posto' && <Fuel className="w-5 h-5 text-yellow-400" />}
               {category === 'oficina' && <Wrench className="w-5 h-5 text-blue-400" />}
               {category === 'concessionaria' && <Car className="w-5 h-5 text-sky-400" />}
               {category === 'roupas' && <ShoppingBag className="w-5 h-5 text-purple-400" />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">{storeInfo.name}</h2>
-              <p className="text-xs text-slate-400">{storeInfo.desc}</p>
+              <h3 className="font-bold text-base text-white">{storeInfo.name}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">{storeInfo.desc}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -240,67 +281,140 @@ export const StoreModal: React.FC<StoreModalProps> = ({
 
         {/* Feedback message banner */}
         {purchasedMessage && (
-          <div className="bg-amber-500/20 border-b border-amber-500/30 px-6 py-2 text-xs font-semibold text-amber-300 text-center animate-in fade-in">
+          <div className="p-2.5 bg-emerald-500/20 border-b border-emerald-500/30 text-emerald-300 text-xs font-semibold text-center animate-in fade-in">
             {purchasedMessage}
           </div>
         )}
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-4">
+        {/* Store Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          {/* Padaria List */}
           {category === 'padaria' && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {PADARIA_ITEMS.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-slate-700 transition-all"
+                  className="p-3.5 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl flex items-center justify-between gap-3 transition-colors"
                 >
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-white text-sm">{item.name}</div>
-                    <div className="text-xs text-slate-400">{item.description}</div>
-                    <div className="text-[11px] text-emerald-400 font-medium">
-                      +{item.effectValue}% Energia
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-white">{item.name}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
+                    <div className="text-xs font-bold text-emerald-400 mt-1">R$ {item.price.toFixed(2)}</div>
                   </div>
                   <button
                     onClick={() => handleBuyConsumable(item)}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md shadow-amber-500/10 shrink-0 cursor-pointer"
+                    className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
                   >
-                    R$ {item.price.toFixed(2)}
+                    Comprar
                   </button>
                 </div>
               ))}
             </div>
           )}
 
+          {/* Mercado List */}
           {category === 'mercado' && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {MERCADO_ITEMS.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3.5 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-slate-700 transition-all"
+                  className="p-3.5 bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl flex items-center justify-between gap-3 transition-colors"
                 >
-                  <div className="space-y-0.5">
-                    <div className="font-semibold text-white text-sm">{item.name}</div>
-                    <div className="text-xs text-slate-400">{item.description}</div>
-                    <div className="text-[11px] text-emerald-400 font-medium">
-                      +{item.effectValue}% Energia
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-white">{item.name}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
+                    <div className="text-xs font-bold text-emerald-400 mt-1">R$ {item.price.toFixed(2)}</div>
                   </div>
                   <button
                     onClick={() => handleBuyConsumable(item)}
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-xs rounded-lg transition-all shadow-md shadow-emerald-500/10 shrink-0 cursor-pointer"
+                    className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 text-slate-950 font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
                   >
-                    R$ {item.price.toFixed(2)}
+                    Comprar
                   </button>
                 </div>
               ))}
             </div>
           )}
 
+          {/* Shopping Metrópole List */}
+          {category === 'shopping' && (
+            <div className="space-y-2.5">
+              {SHOPPING_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3.5 bg-slate-950/70 border border-slate-800 hover:border-purple-500/40 rounded-2xl flex items-center justify-between gap-3 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-white">{item.name}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
+                    <div className="text-xs font-bold text-emerald-400 mt-1">R$ {item.price.toFixed(2)}</div>
+                  </div>
+                  <button
+                    onClick={() => handleBuyConsumable(item)}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
+                  >
+                    Comprar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Hospital List */}
+          {category === 'hospital' && (
+            <div className="space-y-2.5">
+              {HOSPITAL_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3.5 bg-slate-950/70 border border-slate-800 hover:border-red-500/40 rounded-2xl flex items-center justify-between gap-3 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-white flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-red-400" />
+                      {item.name}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
+                    <div className="text-xs font-bold text-emerald-400 mt-1">R$ {item.price.toFixed(2)}</div>
+                  </div>
+                  <button
+                    onClick={() => handleBuyConsumable(item)}
+                    className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 text-white font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
+                  >
+                    Adquirir
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Posto List */}
+          {category === 'posto' && (
+            <div className="space-y-2.5">
+              {POSTO_ITEMS.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3.5 bg-slate-950/70 border border-slate-800 hover:border-yellow-500/40 rounded-2xl flex items-center justify-between gap-3 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-white">{item.name}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{item.description}</div>
+                    <div className="text-xs font-bold text-emerald-400 mt-1">R$ {item.price.toFixed(2)}</div>
+                  </div>
+                  <button
+                    onClick={() => handleBuyConsumable(item)}
+                    className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 text-slate-950 font-bold text-xs rounded-xl shadow-md cursor-pointer shrink-0"
+                  >
+                    Abastecer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Oficina List */}
           {category === 'oficina' && (
             <div className="space-y-4">
-              {/* Kit Tuning */}
-              <div className="p-3.5 bg-blue-950/40 border border-blue-500/30 rounded-xl flex items-center justify-between">
+              <div className="p-3.5 bg-blue-950/40 border border-blue-500/30 rounded-2xl flex items-center justify-between">
                 <div>
                   <div className="font-bold text-white text-sm flex items-center gap-1.5">
                     <Zap className="w-4 h-4 text-amber-400" />
@@ -316,7 +430,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                 <button
                   disabled={hasCarTuning}
                   onClick={handleTuningPurchase}
-                  className={`px-4 py-2 font-bold text-xs rounded-lg transition-all ${
+                  className={`px-4 py-2 font-bold text-xs rounded-xl transition-all ${
                     hasCarTuning
                       ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-500 active:scale-95 text-white shadow-md shadow-blue-500/20 cursor-pointer'
@@ -326,7 +440,6 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                 </button>
               </div>
 
-              {/* Pinturas */}
               <div>
                 <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                   Pintura Personalizada (R$ 100 cada)
@@ -338,14 +451,14 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                       <button
                         key={paint.hex}
                         onClick={() => handleRepaint(paint)}
-                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left cursor-pointer ${
+                        className={`flex items-center gap-2.5 p-2.5 rounded-2xl border transition-all text-left cursor-pointer ${
                           isCurrent
                             ? 'bg-slate-800/80 border-amber-500 shadow-md'
                             : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
                         }`}
                       >
                         <div
-                          className="w-7 h-7 rounded-lg border border-white/20 shrink-0 shadow-inner flex items-center justify-center"
+                          className="w-7 h-7 rounded-xl border border-white/20 shrink-0 shadow-inner flex items-center justify-center"
                           style={{ backgroundColor: paint.hex }}
                         >
                           {isCurrent && <Check className="w-3.5 h-3.5 text-white drop-shadow" />}
@@ -362,6 +475,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
             </div>
           )}
 
+          {/* Concessionária List */}
           {category === 'concessionaria' && (
             <div className="space-y-3">
               <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
@@ -372,7 +486,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                 return (
                   <div
                     key={model.id}
-                    className={`p-3.5 rounded-xl border transition-all ${
+                    className={`p-3.5 rounded-2xl border transition-all ${
                       isOwned
                         ? 'bg-slate-950/90 border-blue-500'
                         : 'bg-slate-950/70 border-slate-800'
@@ -396,10 +510,10 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                         <button
                           disabled={isOwned}
                           onClick={() => handleDealershipBuy(model)}
-                          className={`mt-2 px-3 py-1.5 font-bold text-xs rounded-lg transition-all ${
+                          className={`mt-2 px-3 py-1.5 font-bold text-xs rounded-xl transition-all ${
                             isOwned
                               ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 active:scale-95 text-white shadow-md shadow-blue-600/20 cursor-pointer'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 active:scale-95 text-white shadow-md shadow-blue-600/20 cursor-pointer'
                           }`}
                         >
                           {isOwned ? 'Na Garagem' : 'Comprar Carro'}
@@ -412,6 +526,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
             </div>
           )}
 
+          {/* Roupas List */}
           {category === 'roupas' && (
             <div className="space-y-5">
               <div>
@@ -423,7 +538,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                     <button
                       key={c.hex}
                       onClick={() => setSelectedTopColor(c.hex)}
-                      className={`h-9 rounded-lg border-2 transition-all ${
+                      className={`h-9 rounded-xl border-2 transition-all ${
                         selectedTopColor === c.hex ? 'border-white scale-105' : 'border-transparent hover:opacity-80'
                       }`}
                       style={{ backgroundColor: c.hex }}
@@ -442,7 +557,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                     <button
                       key={c.hex}
                       onClick={() => setSelectedBottomColor(c.hex)}
-                      className={`h-9 rounded-lg border-2 transition-all ${
+                      className={`h-9 rounded-xl border-2 transition-all ${
                         selectedBottomColor === c.hex ? 'border-white scale-105' : 'border-transparent hover:opacity-80'
                       }`}
                       style={{ backgroundColor: c.hex }}
@@ -470,7 +585,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
           <span>Seu Saldo: <strong className="text-emerald-400 font-bold">R$ {money.toFixed(2)}</strong></span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors cursor-pointer"
+            className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-colors cursor-pointer"
           >
             Fechar
           </button>
